@@ -2,7 +2,7 @@
   <hr class="sep">
 
   <div class="form">
-  <form action="<%= @conf.update %>">
+  <form action="<%= @conf.update %>" method="POST">
   <p>ここで削除すると、サムネールなど全てのファイルが削除されます。</p>
   <p>本当に削除してよろしいですか？</p>
   <input type="hidden" name="photo" value="<%= @photo.name %>">

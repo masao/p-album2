@@ -38,7 +38,7 @@
   </div>
 
   <div class="form">
-  <form action="<%= @conf.update %>">
+  <form action="<%= @conf.update %>" method="POST">
   <input type="hidden" name="photo" value="<%= @photo.name %>">
   <input class="field" type="submit" name="remove" value="→ この写真を削除する">
   </form>
