@@ -35,8 +35,8 @@ module PhotoAlbum
       def initialize( path )
 	 @path = path
       end
-      def convert( args )
-	 # p args
+      def convert( *args )
+	 STDERR.puts args.inspect
 	 system(@path, *args)
       end
    end
@@ -98,23 +98,23 @@ module PhotoAlbum
       end
 
       def make_thumbnail
-	 Convert::new( @conf.convert ).convert( @conf.thumbnail_opts + [ orig_path, thumbnail ] )
+	 Convert::new( @conf.convert ).convert( *(@conf.thumbnail_opts << orig_path << thumbnail) )
       end
 
       def do_convert
 	 convert = Convert.new( @conf.convert )
 	 File::copy( path, orig_path( true ) ) unless FileTest::exist? orig_path
 	 tmp = Tempfile::new( name )
-	 if convert then
-	    convert.convert( convert, orig_path, path )
+	 if @convert then
+	    convert.convert( @convert, orig_path, path )
 	 end
 	 if rotate then
-	    convert.convert( @convert, "-rotate", @rotate, path, tmp.path )
-	    File::copy( tmp.path, path )
+	    convert.convert( "-rotate", @rotate.to_s, path, tmp.path + EXT )
+	    File::cp( tmp.path + EXT, path )
 	 end
 	 if @scale then
-	    convert.convert( @convert, "-scale", @scale, path, tmp.path )
-	    File::copy( tmp.path, path )
+	    convert.convert( "-scale", @scale.to_s, path, tmp.path +EXT )
+	    File::cp( tmp.path + EXT, path )
 	 end
 	 make_thumbnail
       end
@@ -633,7 +633,7 @@ CSS
 	    newday = Day::new( d )
 	    db['p-album'][d].each_photo do |photo|
 	       if photo.name == @cgi['photo'][0] then
-		  photo = @photo
+		  photo = @photo.to_photo
 	       end
 	       newday << photo
 	    end
