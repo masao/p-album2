@@ -36,6 +36,8 @@ def navi_back; '戻る'; end
 def navi_preference; '設定'; end
 def navi_prev_month; '前月'; end
 def navi_next_month; '翌月'; end
+def navi_prev_photo; '前の写真'; end
+def navi_next_photo; '次の写真'; end
 
 #
 # labels (for mobile)

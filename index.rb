@@ -15,7 +15,7 @@ begin
    if cgi.valid?( 'date' ) and cgi.params['date'][0] =~ /^\d{6}$/ then
       	 album = PhotoAlbum::AlbumMonth::new( cgi, "month.rhtml", conf )
    elsif cgi.valid?( 'photo' ) then
-      album = PhotoAlbum::AlbumOne::new( cgi, "photo.rhtml", conf )
+      album = PhotoAlbum::AlbumPhoto::new( cgi, "photo.rhtml", conf )
    else
       album = PhotoAlbum::AlbumLatest::new( cgi, "latest.rhtml", conf )
    end

@@ -30,8 +30,6 @@ begin
       album = PhotoAlbum::AlbumUpdate::new( cgi, "update.rhtml", conf )
    end
    
-   STDERR.puts album.mode
-
    head = {
       'type' => 'text/html',
    }

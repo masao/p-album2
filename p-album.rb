@@ -88,7 +88,7 @@ module PhotoAlbum
       end
 
       def to_photofile( conf )
-	 PhotoFile::new( @name, conf, @datetime, @title, @decsription, @convert, @rotate, @scale )
+	 PhotoFile::new( @name, conf, @datetime, @title, @description, @convert, @rotate, @scale )
       end
    end
 
@@ -99,13 +99,12 @@ module PhotoAlbum
       FILENAME_PATTERN = "%Y%m%dt%H%M%S#{EXT}"
 
       def initialize( name, conf, datetime = nil, title = nil, description = nil, convert = nil, rotate = nil, scale = nil )
-	 STDERR.puts scale
 	 super( name, datetime, title, description, convert, rotate, scale )
 	 @conf = conf
       end
 
       def to_photo
-	 Photo::new( @name, @datetime, @title, @decsription, @convert, @rotate, @scale)
+	 Photo::new( @name, @datetime, @title, @description, @convert, @rotate, @scale)
       end
 
       def path
@@ -434,14 +433,12 @@ module PhotoAlbum
 	    res_file = File::dirname( file ) + "/#{@conf.lang}/" + File::basename( file )
 	    open( res_file.untaint ) do |src|
 	       instance_eval( src.read.untaint )
-	       STDERR.puts res_file
 	    end
 	    @resource_loaded = true
 	 rescue IOError, Errno::ENOENT
 	 end
 	 open( file.untaint ) do |src|
 	    instance_eval( src.read.untaint )
-	    STDERR.puts file
 	 end
       end
 
@@ -636,37 +633,25 @@ module PhotoAlbum
       def initialize( cgi, rhtml, conf )
 	 @cgi, @rhtml, @conf = cgi, rhtml, conf
 	 @cookies = []
-
-	 month = @cgi.valid?( 'month' ) ? @cgi['month'][0] : ""
-	 if !Date.exist?( month[0,4].to_i, month[4,2].to_i, 1) then
-	    month = Time::now.strftime( '%Y%m' )
-	 end
-
-	 if FileTest::exist?( "#{@conf.data_path}#{month}.db" )
-	    db = PStore::new( "#{@conf.data_path}#{month}.db" )
-	    db.transaction do
-	       @month = db['p-album']
-	    end
-	 else
-	    @month = Month::new( month )
-	 end
-      end
-
-      def month_list
-	 result = []
-	 Dir::glob( "#{@conf.data_path}??????.db" ).each do |f|
-	    result << File::basename( f, '.db' )
-	 end
-	 result
-      end
-
-      def each_month
-	 month_list.sort.each do |m|
-	    yield m
+	 @all_photos = []
+	 each_month do |m|
+	    @all_photos += photo_list( m )
 	 end
       end
 
       def eval_rhtml( prefix = '' )
+	 begin
+	    r = do_eval_rhtml( prefix )
+	 rescue PluginError, SyntaxError, ArgumentError
+	    r = ERbLight::new( File::open( "#{PATH}/skel/plugin_error.rhtml" ) {|f| f.read }.untaint ).result( binding )
+	 rescue Exception
+	    raise
+	 end
+	 r
+      end
+
+   protected
+      def do_eval_rhtml( prefix )
 	 # load plugin files
 	 load_plugins
 
@@ -685,11 +670,10 @@ module PhotoAlbum
 
 	 # apply plugins
 	 r = @plugin.eval_src( r.untaint, @conf.secure ) if @plugin
-
 	 @cookies += @plugin.cookies
 	 r
       end
-
+      
       def mode
 	 self.class.to_s.sub( /^PhotoAlbum::Album/, '' ).downcase
       end
@@ -701,17 +685,30 @@ module PhotoAlbum
 			       'mode' => mode,
 			       'cgi' => @cgi,
 			       'years' => @years,
-			       'date' => "#{@year}#{@month}",
-			       'year' => @year,
+			       'date' => @date,
 			       'month' => @month,
-			       'monthly' => @monthly
+			       'photo' => @photo,
+			       'all_photos' => @all_photos
 			       )
+      end
+
+      def month_list
+	 result = []
+	 Dir::glob( "#{@conf.data_path}??????.db" ).each do |f|
+	    result << File::basename( f, '.db' )
+	 end
+	 result
+      end
+
+      def each_month
+	 month_list.sort.each do |m|
+	    yield m
+	 end
       end
 
       def photo_list( month )
 	 result = []
-	 db = PStore::new( "#{@conf.data_path}#{month}.db" )
-	 db.transaction do
+	 PStore::new( "#{@conf.data_path}#{month}.db" ).transaction do |db|
 	    db['p-album'].each_day do |day|
 	       day.each_photo do |photo|
 		  result << photo.name
@@ -739,8 +736,7 @@ module PhotoAlbum
 
 	 @days = {}
 	 each_month do |m|
-	    db = PStore::new( "#{@conf.data_path}#{m}.db" )
-	    db.transaction do
+	    PStore::new( "#{@conf.data_path}#{m}.db" ).transaction do |db|
 	       db['p-album'].each_day do |day|
 		  @days[day.to_s] = day
 	       end
@@ -762,25 +758,34 @@ module PhotoAlbum
       def initialize( cgi, rhtml, conf )
 	 super
 
-	 m = @cgi['date'][0]
-	 if Date::exist?( m[0,4].to_i, m[4,2].to_i, 1) and FileTest::exist?( "#{@conf.data_path}#{m}.db" )then
-	    db = PStore::new( "#{@conf.data_path}#{m}.db" )
-	    db.transaction do
+	 year = month = ""
+	 if @cgi.valid?( 'date' ) then
+	    @date = @cgi.params['date'][0]
+	    year =  @cgi.params['date'][0][0,4]
+	    month = @cgi.params['date'][0][4,2]
+	    month = '01' if month.empty?
+	 end
+	 if !Date.exist?(year.to_i, month.to_i, 1) then
+	    month = Time::now.strftime( '%m' )
+	 end
+
+	 if FileTest::exist?( "#{@conf.data_path}#{year}#{month}.db" )
+	    PStore::new( "#{@conf.data_path}#{year}#{month}.db" ).transaction do |db|
 	       @month = db['p-album']
 	    end
 	 else
-	    @month = Month::new( m )
+	    @month = Month::new( month )
 	 end
       end
    end
 
-   class AlbumOne < AlbumBase
+   class AlbumPhoto < AlbumBase
       def initialize( cgi, rhtml, conf )
 	 super
+
 	 m = @cgi['photo'][0][0, 6]
 	 d = @cgi['photo'][0][0, 8]
-	 db = PStore::new( "#{@conf.data_path}#{m}.db" )
-	 db.transaction do
+	 PStore::new( "#{@conf.data_path}#{m}.db" ).transaction do |db|
 	    if db['p-album'].include?( d ) then
 	       db['p-album'][d].each_photo do |photo|
 		  if photo.name == @cgi['photo'][0] then
@@ -839,21 +844,15 @@ module PhotoAlbum
 	    File::basename( f, PhotoFile::EXT )
 	 }
 
-	 photolist = []
-	 month_list.each do |m|
-	    photolist += photo_list(m)
-	 end
-
 	 # puts "filelist: #{filelist.inspect}"
-	 # puts "photolist: #{photolist.inspect}"
+	 # puts "photolist: #{@all_photos.inspect}"
 	 @added = []
-	 (filelist - photolist).each do |name|
+	 (filelist - @all_photos).each do |name|
 	    photo = Photo::new( name )
 	    @added << PhotoFile::new( name, @conf )
 	    m = photo.datetime.strftime('%Y%m')
 	    d = photo.datetime.strftime('%Y%m%d')
-	    db = PStore::new( "#{@conf.data_path}#{m}.db" )
-	    db.transaction do
+	    PStore::new( "#{@conf.data_path}#{m}.db" ).transaction do |db|
 	       db['p-album'] = Month::new( m ) unless db.root?( 'p-album' )
 	       db['p-album'][d] = Day::new( d ) unless db['p-album'][d]
 	       db['p-album'][d] << photo
@@ -862,7 +861,7 @@ module PhotoAlbum
       end
    end
 
-   class AlbumEdit < AlbumOne; end
+   class AlbumEdit < AlbumPhoto; end
 
    class AlbumSavePhoto < AlbumEdit
       def initialize ( cgi, rhtml, conf )
@@ -873,8 +872,7 @@ module PhotoAlbum
 
 	 m = @cgi['photo'][0][0, 6]
 	 d = @cgi['photo'][0][0, 8]
-	 db = PStore::new( "#{@conf.data_path}#{m}.db" )
-	 db.transaction do
+	 PStore::new( "#{@conf.data_path}#{m}.db" ).transaction do |db|
 	    newday = Day::new( d )
 	    db['p-album'][d].each_photo do |photo|
 	       if photo.name == @cgi['photo'][0] then
@@ -904,8 +902,7 @@ module PhotoAlbum
 	 if @cgi.valid?( 'confirm' ) then
 	    m = @cgi['photo'][0][0, 6]
 	    d = @cgi['photo'][0][0, 8]
-	    db = PStore::new( "#{@conf.data_path}#{m}.db" )
-	    db.transaction do
+	    PStore::new( "#{@conf.data_path}#{m}.db" ).transaction do |db|
 	       newday = Day::new( d )
 	       db['p-album'][d].each_photo do |photo|
 		  unless photo.name == @cgi['photo'][0] then
@@ -948,14 +945,12 @@ module PhotoAlbum
 	 @photo.scale = @cgi['scale'][0].to_i if @cgi.valid?( 'scale' )
 
 	 @photo = @photo.to_photofile( @conf )
-	 STDERR.puts @photo.inspect
 	 @photo.do_convert
 	 @photo.make_thumbnail
 
 	 m = @cgi['photo'][0][0, 6]
 	 d = @cgi['photo'][0][0, 8]
-	 db = PStore::new( "#{@conf.data_path}#{m}.db" )
-	 db.transaction do
+	 PStore::new( "#{@conf.data_path}#{m}.db" ).transaction do |db|
 	    newday = Day::new( d )
 	    db['p-album'][d].each_photo do |photo|
 	       if photo.name == @cgi['photo'][0] then

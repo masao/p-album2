@@ -5,7 +5,7 @@
   <h2 class="photo-title"><%= @photo.title %></h2>
   <div class="photo"><img src="<%= @photo.path %>" alt="<%= @photo.title %>" title="<%= @photo.title %>" <%= html_imgsize(@photo.path) %></div>
   <p class="datetime">»£±ÆÆü»þ: <%= @photo.datetime.strftime( '%Y-%m-%d %H:%M:%S' ) %></p>
-  <% if @photo.description && @photo.description.length > 0 then %>
+  <% if @photo.description and @photo.description.length > 0 then %>
   <p class="description"><%= @photo.description %></p>
   <% end %>
   </div>

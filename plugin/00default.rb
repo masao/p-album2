@@ -5,8 +5,10 @@ def navi
    result = %Q[<div class="adminmenu">\n]
    result << %Q[<span class="adminmenu"><a href="#{@conf.index_page}">¥È¥Ã¥×</a></span>\n] unless @conf.index_page.empty?
    result << %Q[<span class="adminmenu"><a href="#{@conf.index}?date=#{@prev_month}">&laquo;#{navi_prev_month}</a></span>\n] if @mode == 'month'
+   result << %Q[<span class="adminmenu"><a href="#{@conf.index}?photo=#{@prev_photo}">&laquo;#{navi_prev_photo}</a></span>\n] if @prev_photo
    result << %Q[<span class="adminmenu"><a href="#{@conf.index}">#{navi_latest}</a></span>\n] unless @mode == 'latest'
    result << %Q[<span class="adminmenu"><a href="#{@conf.index}?date=#{@next_month}">#{navi_next_month}&raquo;</a></span>\n] if @mode == 'month'
+   result << %Q[<span class="adminmenu"><a href="#{@conf.index}?photo=#{@next_photo}">#{navi_next_photo}&raquo;</a></span>\n] if @next_photo
    result << %Q[<span class="adminmenu"><a href="#{@conf.index}?photo=#{@name}">#{navi_back}</a></span>\n] if @mode == 'edit'
    result << %Q[<span class="adminmenu"><a href="#{@conf.update}?photo=#{@name}">#{navi_edit}</a></span>\n] if @mode == 'photo'
    menu_proc.each {|i| result << %Q[<span class="adminmenu">#{i}</span>\n]}
@@ -69,7 +71,7 @@ end
 
 def calc_links
    if mode == 'month' then
-      y, m = @month.month[0, 4], @month.month[4, 2]
+      y, m = @date.month[0, 4], @date.month[4, 2]
       if m == "01" then
 	 @prev_month = "#{ sprintf('%04d', y.to_i-1) }12"
       else
@@ -84,22 +86,12 @@ def calc_links
 
    if @photo then
       m = @photo.name[0, 6]
-      mlist = month_list
-      plist = photo_list( m )
-      idx = plist.index( @photo.name )
-      if idx == 0 then
-	 if mlist.index( m ) != 0 then
-	    @prev_photo = photo_list( mlist[ mlist.index(m) - 1 ] ).last
-	 end
-      else
-	 @prev_photo = plist[ idx - 1 ]
+      idx = @all_photos.index( @photo.name )
+      unless idx == 0 then
+	 @prev_photo = @all_photos[ idx - 1 ]
       end
-      if idx == plist.size - 1 then
-	 if mlist.index( m ) != mlist.size - 1 then
-	    @next_photo = photo_list( mlist[ mlist.index(m) + 1 ] ).last
-	 end
-      else
-	 @next_photo = plist[ idx + 1 ]
+      unless idx == @all_photos.size - 1 then
+	 @next_photo = @all_photos[ idx + 1 ]
       end
    end
 end
