@@ -1,0 +1,19 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+	<meta name="generator" content="<%= PHOTOALBUM_VERSION %>">
+	<title>Plugin Error</title>
+</head>
+<body>
+<h1>Plugin Error</h1>
+<p style="font-size: large;"><strong>
+	Errors in plugins?
+	Retry to <a href="<%= @conf.update %>?conf=1">Configure</a>.
+</strong></p>
+<blockquote>
+	<strong><%= CGI::escapeHTML( $!.class.to_s ) %></strong><br>
+	<code><%= CGI::escapeHTML( $!.to_s ).gsub( / /, '&nbsp;' ).gsub( /\n/, "<br>\n" ) %></code>
+</blockquote>
+</body>
+</html>
+
