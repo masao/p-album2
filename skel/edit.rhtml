@@ -18,7 +18,8 @@
      </select></p>
   <p>拡大・縮小:
      <select name="scale" class="field">
-       <option value="">100%</option>
+       <option value="200">200%</option>
+       <option value="" selected>100%</option>
        <option value="80">80%</option>
        <option value="50">50%</option>
        <option value="20">20%</option>
@@ -44,9 +45,9 @@
   </form>
   </div>
 
-  <% if @photo.rotate || @photo.scale then %>
+  <% if FileTest::exist?( @photo.orig_path(true) ) then %>
   <div class="form">
-  <form action="<%= @conf.update %>">
+  <form action="<%= @conf.update %>" method="POST">
   <input type="hidden" name="photo" value="<%= @photo.name %>">
   <input class="field" type="submit" name="original" value="→ 変換前の写真に戻す">
   </form>
