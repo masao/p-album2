@@ -20,11 +20,6 @@ div.photo {
   text-align: center;
 }
 
-div.form div.photo {
-  float: left;
-  font-size: smaller;
-}
-
 p.datetime {
   margin-top: 0px;
   text-align: center;
@@ -39,4 +34,17 @@ p.description {
   border-style: dashed;
   border-width: thin;
   padding: 5px;
+}
+
+div.thumbnail {
+  float: left;
+  margin-right: 0.5em;
+}
+div.thumbnail .image_size {
+  font-size: smaller;
+  text-align: center;
+}
+
+div.day {
+  clear: both;
 }
