@@ -885,6 +885,15 @@ module PhotoAlbum
       end
    end
 
+   class AlbumPhotoPreview < AlbumPhotoEdit
+      def initialize ( cgi, rhtml, conf )
+	 super
+
+	 @photo.title = @cgi['title'][0].to_euc
+	 @photo.description = @cgi['description'][0].to_euc
+      end
+   end
+
    class AlbumPhotoOriginal < AlbumPhotoEdit
       def initialize ( cgi, rhtml, conf )
 	 super

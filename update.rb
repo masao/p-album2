@@ -16,6 +16,8 @@ begin
       album = PhotoAlbum::AlbumUpload::new( cgi, "update.rhtml", conf )
    elsif cgi.valid?( 'remove' )
       album = PhotoAlbum::AlbumPhotoRemove::new( cgi, "remove.rhtml", conf )
+   elsif cgi.valid?( 'previewphoto' )
+      album = PhotoAlbum::AlbumPhotoPreview::new( cgi, "preview.rhtml", conf )
    elsif cgi.valid?( 'savephoto' )
       album = PhotoAlbum::AlbumPhotoSave::new( cgi, "edit.rhtml", conf )
    elsif cgi.valid?( 'convertphoto' )
