@@ -5,7 +5,7 @@
   <% result = search( @cgi.params['q'][0] ).sort{|a,b| b <=> a } %>
   <p><%= result.size %> 件ヒットしました。</p>
   <% result.each do |photo| %>
-  <div class="day">
+  <div class="day search">
   <% unless photo.title.empty? then %>
   <h2><a href="<%= @conf.index %><%%= anchor "<%= photo.name %>" %>"><%= photo.title %></a></span></h2>
   <% end %>
@@ -15,7 +15,9 @@
   <a href="<%= @conf.index %><%%= anchor "<%= photo.name %>" %>"><img src="<%= photo.thumbnail %>" alt="<%= photo.title %>" title="<%= photo.title %>" <%= html_imgsize(photo.thumbnail) %>></a>
   </div>
   <div class="datetime">撮影日時: <%= photo.datetime.strftime( '%Y-%m-%d %H:%M:%S' ) %></div>
-  <div class="description"><%= photo.description ? @conf.shorten( photo.description.strip_tag ) : "" %></div>
+  <% if photo.description and not photo.description.empty? then %>
+  <div class="description"><%= @conf.shorten( photo.description.strip_tag ) %></div>
+  <% end %>
   </div>
   </div>
   <% end %>

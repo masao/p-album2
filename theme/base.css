@@ -14,22 +14,20 @@ for printer
 h2.photo-title {
   text-align: center;
 }
-
 div.photo {
   margin: 0.5em;
   text-align: center;
 }
-
-p.datetime {
+div.datetime {
   margin-top: 0px;
   text-align: center;
   font-size: smaller;
 }
-
-p.description {
+div.description {
   width: 80%;
   margin-left: auto;
   margin-right: auto;
+  margin-top: .5em;
   margin-bottom: .5em;
   border-style: dashed;
   border-width: thin;
@@ -45,6 +43,9 @@ div.thumbnail .image_size {
   text-align: center;
 }
 
-div.day {
+div.search {
   clear: both;
+}
+div.search div.datetime {
+  text-align: left;
 }
