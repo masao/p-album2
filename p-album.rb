@@ -32,7 +32,7 @@ end
 
 class CGI
    def valid?( param, idx = 0 )
-      self[param] and self[param][idx] and self[param][idx].length > 0
+      self.params[param] and self.params[param][idx] and self.params[param][idx].length > 0
    end
 end
 
@@ -967,6 +967,29 @@ module PhotoAlbum
 	    end
 	 end
          r
+      end
+   end
+
+   class AlbumUpload < AlbumBase
+      def initialize( cgi, rhtml, conf )
+         super
+
+         @added = []
+         1.upto 10 do |i|
+            if @cgi.valid?( "file#{i}" ) then
+               # STDERR.puts @cgi.params["file#{i}"][0].original_filename
+               photo = PhotoFile::load_file( @cgi.params["file#{i}"][0].local_path, @conf )
+               if photo then
+                  @added << photo
+                  m = photo.datetime.strftime('%Y%m')
+                  d = photo.datetime.strftime('%Y%m%d')
+                  month = @io.load( m )
+                  month[d] ||= Day::new( d )
+                  month[d] << photo.to_photo
+                  @io.save( m, month )
+               end
+            end
+         end
       end
    end
 end

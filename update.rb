@@ -12,7 +12,9 @@ begin
 
    conf = PhotoAlbum::Config::new
    cgi = CGI::new
-   if cgi.valid?( 'remove' )
+   if cgi.valid?( 'upload' )
+      album = PhotoAlbum::AlbumUpload::new( cgi, "update.rhtml", conf )
+   elsif cgi.valid?( 'remove' )
       album = PhotoAlbum::AlbumPhotoRemove::new( cgi, "remove.rhtml", conf )
    elsif cgi.valid?( 'savephoto' )
       album = PhotoAlbum::AlbumPhotoSave::new( cgi, "edit.rhtml", conf )
@@ -29,7 +31,7 @@ begin
    else
       album = PhotoAlbum::AlbumUpdate::new( cgi, "update.rhtml", conf )
    end
-   
+
    head = {
       'type' => 'text/html',
    }

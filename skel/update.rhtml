@@ -13,7 +13,7 @@
 
 <p>ファイルを取り込みます。</p>
 
-<form action="<%= @conf.update %>" method="POST">
+<form method="POST" action="<%= @conf.update %>" enctype="multipart/form-data">
 <div class="day">
 <h2>アップロード</h2>
 <div class="body">
@@ -22,7 +22,7 @@
 <li><input type="file" name="file<%= i %>">
 <% end %>
 </ol>
-<input type="submit" name="upload" value=" → 直接アップロードする ">
+<input type="submit" name="upload" value=" → アップロードする ">
 </div>
 </div>
 </form>
