@@ -343,7 +343,8 @@ module PhotoAlbum
 	 raise AlbumError, 'Do not set @data_path as same as p-album system directory.' if @data_path == "#{PATH}/"
 	 variables = [
 	    :html_title, :index_page, :recent,
-	    :header, :footer, :theme, :css
+	    :header, :footer, :theme, :css,
+            :options2,
 	 ]
 	 begin
 	    cgi_conf = File::open( "#{@data_path}p-album.conf" ){|f| f.read }
