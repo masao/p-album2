@@ -66,7 +66,7 @@ module PhotoAlbum
       end
       def convert( *args )
 	 # STDERR.puts args.inspect
-	 system(@path, *args)
+	 system(@path, *args) or raise 'convert failed'
       end
    end
 
@@ -128,7 +128,7 @@ module PhotoAlbum
       end
 
       def do_convert( rotate, scale )
-	 # STDERR.puts "do_convert"
+	 # STDERR.puts "do_convert: rotate: #{rotate}, scale: #{scale}"
 	 convert = Convert.new( @conf.convert )
 	 File::cp( path, orig_path(true) ) unless FileTest::exist?(orig_path(true))
 	 if rotate and rotate != 0 then
