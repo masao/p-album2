@@ -18,7 +18,7 @@ rescue LoadError
    end
 end
 
-PHOTOALBUM_VERSION = '0.1'
+PHOTOALBUM_VERSION = '0.1alpha'
 
 class String
    def to_euc
