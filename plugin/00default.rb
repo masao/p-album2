@@ -86,12 +86,8 @@ def calc_links
       m = @date[0, 6]
       month_list = @years.keys.sort.collect{|y| @years[y]}.flatten
       idx = month_list.index( m )
-      unless idx == 0 then
-	 @prev_month = month_list[ idx - 1 ]
-      end
-      unless idx == @all_photos.size - 1 then
-	 @next_month = month_list[ idx + 1 ]
-      end
+      @prev_month = month_list[ idx - 1 ] unless idx == 0
+      @next_month = month_list[ idx + 1 ]
    end
 
    if @photo then
