@@ -61,7 +61,7 @@ module PhotoAlbum
 	 @path = path
       end
       def convert( *args )
-	 STDERR.puts args.inspect
+	 # STDERR.puts args.inspect
 	 system(@path, *args)
       end
    end
@@ -120,7 +120,7 @@ module PhotoAlbum
       end
 
       def make_thumbnail
-	 Convert::new( @conf.convert ).convert( *(@conf.thumbnail_opts.dup << orig_path << thumbnail) )
+	 Convert::new( @conf.convert ).convert( *(@conf.thumbnail_opts.dup << path << thumbnail) )
       end
 
       def do_convert( rotate, scale )
@@ -933,9 +933,9 @@ module PhotoAlbum
 	 if @cgi.valid?( 'rotate' ) then
 	    rotate = 0
 	    if @cgi.params['rotate'][0] == 'left' then
-	       rotate += -90
-	    else
 	       rotate += 90
+	    else
+	       rotate += -90
 	    end
 	 end
 
