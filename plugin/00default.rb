@@ -10,7 +10,7 @@ def navi
    result << %Q[<span class="adminmenu"><a href="#{@conf.index}?date=#{@next_month}">#{navi_next_month}&raquo;</a></span>\n] if @mode == 'month'
    result << %Q[<span class="adminmenu"><a href="#{@conf.index}?photo=#{@next_photo}">#{navi_next_photo}&raquo;</a></span>\n] if @next_photo
    result << %Q[<span class="adminmenu"><a href="#{@conf.index}?photo=#{@name}">#{navi_back}</a></span>\n] if @mode == 'edit'
-   result << %Q[<span class="adminmenu"><a href="#{@conf.update}?photo=#{@name}">#{navi_edit}</a></span>\n] if @mode == 'photo'
+   result << %Q[<span class="adminmenu"><a href="#{@conf.update}?photo=#{@photo.name}">#{navi_edit}</a></span>\n] if @mode == 'photo'
    menu_proc.each {|i| result << %Q[<span class="adminmenu">#{i}</span>\n]}
    result << %Q[<span class="adminmenu"><a href="#{@conf.update}">#{navi_update}</a></span>\n] unless @mode == 'update'
    result << %Q[<span class="adminmenu"><a href="#{@conf.update}?conf=default">#{navi_preference}</a></span>\n] unless /^latest|month|conf$/ =~ @mode
