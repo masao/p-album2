@@ -56,7 +56,7 @@ add_conf_proc( 'default', '基本' ) do
 	<h3 class="subtitle">トップページURL</h3>
 	#{"<p>アルバムよりも上位のコンテンツがあれば指定します。存在しない場合は何も入力しなくてかまいません。</p>" unless @conf.mobile_agent?}
 	<p><input name="index_page" value="#{@conf.index_page}" size="50"></p>
-	HTML
+   HTML
 end
 
 add_conf_proc( 'header', 'ヘッダ・フッタ' ) do
