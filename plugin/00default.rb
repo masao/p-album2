@@ -156,13 +156,13 @@ def index_page_tag
       result << %Q[<link rel="next" title="#{navi_next_photo}" href="#{@conf.index}#{anchor @next_photo}">\n\t]
    end
 
-   result << %Q[<link rel="last" title="#{navi_latest}" href="#{@conf.index}">\n\t]
-
    if @mode == "latest" then
       month_list = @years.keys.collect{|y| @years[y]}.flatten.sort
       month_list.each do |m|
          result << %Q[<link rel="chapter" title="#{m[0,4]}-#{m[4,2]}" href="#{@conf.index}#{anchor m}">\n\t]
       end
+   else
+      result << %Q[<link rel="contents" title="#{navi_latest}" href="#{@conf.index}">\n\t]
    end
 
    result.strip
