@@ -165,6 +165,11 @@ def index_page_tag
       result << %Q[<link rel="contents" title="#{navi_latest}" href="#{@conf.index}">\n\t]
    end
 
+   if @photo then
+      t = @photo.datetime
+      result << %Q[<link rel="up" title="#{t.strftime '%Y-%m-%d'}" href="#{anchor t.strftime('%Y%m')}##{t.strftime '%Y%m%d'}">\n\t]
+   end
+
    result.strip
 end
 
