@@ -1,0 +1,54 @@
+#
+# p-album configuration file via CGI $Revision$
+#
+
+#
+# basic
+#
+html_title = <%= @html_title.dump %>
+index_page = <%= @index_page.dump %>
+hour_offset = <%= @hour_offset %>
+
+#
+# header / footer
+#
+header = <<END_OF_HEADER
+<%= @header.gsub( /\\/, '\\\\\\\\' ).sub( /\n+\z/, "" ) %>
+END_OF_HEADER
+footer = <<END_OF_FOOTER
+<%= @footer.gsub( /\\/, '\\\\\\\\' ).sub( /\n+\z/, "" ) %>
+END_OF_FOOTER
+
+#
+# diaplay(2) - theme
+#
+theme = <%= @theme.dump %>
+css = <%= @css.dump %>
+
+#
+# genre/account
+#
+genre_income = <%= @genre_income.inspect %>
+genre_expense = <%= @genre_expense.inspect %>
+genre_move = <%= @genre_move.inspect %>
+account_list = <%= @account_list.inspect %>
+
+#
+# account group
+#
+vaccount_name = <%= @vaccount_name.inspect %>
+vaccount_list = <%= @vaccount_list.inspect %>
+
+#
+# options for plugins
+#
+options2 = {<% @options2.keys.sort.each do |k|
+	if @options2[k].class == String
+		v = @options2[k].dump
+	elsif @options2[k].class.to_s =~ /^(Fixnum|FalseClass|TrueClass|NilClass)$/
+		v = @options2[k].inspect
+	else
+		next
+	end %>
+	'<%= k %>' => <%= v %>,<% end %>
+}

@@ -142,22 +142,6 @@ def css_tag
    CSS
 end
 
-def account_link
-   if @account
-      return '&amp;account='+CGI::escape(@account)
-   else
-      ''
-   end
-end
-
-def account_title
-   if @account
-      return @account + ' '
-   else
-      ''
-   end
-end
-
 #
 # other resources
 #
@@ -170,7 +154,6 @@ end
 def saveconf_default
    if @mode == 'saveconf' then
       @conf.index_page = @cgi.params['index_page'][0]
-      @conf.hour_offset = @cgi.params['hour_offset'][0].to_f
    end
 end
 
@@ -180,36 +163,6 @@ def saveconf_header
       @conf.html_title = @conf.to_native( @cgi.params['html_title'][0] )
       @conf.header = @conf.to_native( @cgi.params['header'][0] ).gsub( /\r\n/, "\n" ).gsub( /\r/, '' ).sub( /\n+\z/, '' )
       @conf.footer = @conf.to_native( @cgi.params['footer'][0] ).gsub( /\r\n/, "\n" ).gsub( /\r/, '' ).sub( /\n+\z/, '' )
-   end
-end
-
-# genre/account
-def saveconf_genre
-   if @mode == 'saveconf' then
-      genre_income2 = []
-      @conf.to_native( @cgi.params['genre_income'][0] ).each do |i|
-	 i.strip!
-	 genre_income2 << i if i.length > 0
-      end
-      @conf.genre_income = genre_income2
-      genre_expense2 = []
-      @conf.to_native( @cgi.params['genre_expense'][0] ).each do |i|
-	 i.strip!
-	 genre_expense2 << i if i.length > 0
-      end
-      @conf.genre_expense = genre_expense2
-      genre_move2 = []
-      @conf.to_native( @cgi.params['genre_move'][0] ).each do |i|
-	 i.strip!
-	 genre_move2 << i if i.length > 0
-      end
-      @conf.genre_move = genre_move2
-      account_list2 = []
-      @conf.to_native( @cgi.params['account_list'][0] ).each do |i|
-	 i.strip!
-	 account_list2 << i if i.length > 0
-      end
-      @conf.account_list = account_list2
    end
 end
 
@@ -228,20 +181,5 @@ if @mode =~ /^(conf|saveconf)$/ then
       next unless FileTest::file?( "#{dir}/#{theme}.css".untaint )
       name = theme.split( /_/ ).collect{|s| s.capitalize}.join( ' ' )
       @conf_theme_list << [theme,name]
-   end
-end
-
-# account group
-def saveconf_account
-   if @mode == 'saveconf' then
-      @conf.vaccount_name = []
-      @conf.vaccount_list = []
-      0.upto(9) do |i|
-	 next if @cgi.params["vaccount_name#{i}"] == ''
-	 next if @conf.account_list.include?( @cgi.params["vaccount_name#{i}"] )
-	 next if @cgi.params["vaccount_list#{i}"].size == 0
-	 @conf.vaccount_name << @cgi.params["vaccount_name#{i}"][0]
-	 @conf.vaccount_list << @cgi.params["vaccount_list#{i}"]
-      end
    end
 end

@@ -265,8 +265,36 @@ module PhotoAlbum
 	 end
       end
 
+      # saving to p-album.conf in @data_path
+      def save
+	 result = ERbLight::new( File::open( "#{PATH}/skel/p-album.rconf" ){|f| f.read }.untaint ).result( binding )
+	 result.untaint unless @secure
+	 Safe::safe( @secure ? 4 : 1 ) do
+	    eval( result )
+	 end
+	 File::open( "#{@data_path}p-album.conf", 'w' ) do |o|
+	    o.print result
+	 end
+      end
+
       def mobile_agent?
 	 %r[(DoCoMo|J-PHONE|UP\.Browser|DDIPOCKET|ASTEL|PDXGW|Palmscape|Xiino|sharp pda browser|Windows CE|L-mode)]i =~ ENV['HTTP_USER_AGENT']
+      end
+
+      #
+      # get/set/delete plugin options
+      #
+      def []( key )
+	 @options[key]
+      end
+
+      def []=( key, val )
+	 @options2[key] = @options[key] = val
+      end
+
+      def delete( key )
+	 @options.delete( key )
+	 @options2.delete( key )
       end
 
       # loading p-album.conf in current directory
@@ -298,6 +326,14 @@ module PhotoAlbum
 	 @header = '' unless @header
 	 @footer = '' unless @footer
 	 @theme = 'default' if not @theme and not @css
+
+	 @options = {} unless @options.class == Hash
+	 if @options2 then
+	    @options.update( @options2 )
+	 else
+	    @options2 = {}.taint
+	 end
+	 @options.taint
       end
 
       # loading p-album.conf in @data_path.
@@ -768,6 +804,28 @@ module PhotoAlbum
       def initialize( cgi, rhtml, conf )
 	 super
 	 @key = @cgi.params['conf'][0]
+      end
+   end
+
+   #
+   # class AlbumSaveConf
+   #  save configuration
+   #
+   class AlbumSaveConf < AlbumConf
+      def initialize( cgi, rhtml, conf )
+	 super
+      end
+
+      def eval_rhtml( prefix = '' )
+	 r = super
+
+	 begin
+	    @conf.save
+	 rescue
+	    @error = [$!.dup, $@.dup]
+	 end
+
+	 r
       end
    end
 

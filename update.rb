@@ -22,6 +22,8 @@ begin
       album = PhotoAlbum::AlbumOriginalPhoto::new( cgi, "edit.rhtml", conf )
    elsif cgi.valid?( 'photo' )
       album = PhotoAlbum::AlbumEdit::new( cgi, "edit.rhtml", conf )
+   elsif cgi.valid?( 'saveconf' ) then
+      album = PhotoAlbum::AlbumSaveConf::new( cgi, "conf.rhtml", conf )
    elsif cgi.valid?( 'conf' ) then
       album = PhotoAlbum::AlbumConf::new( cgi, "conf.rhtml", conf )
    else
