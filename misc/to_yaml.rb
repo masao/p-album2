@@ -30,5 +30,5 @@ Dir::glob("*.db") do |f|
    open(newfname, "w") do |f|
       f.print result.to_yaml( :SortKeys => true )
    end
-   puts "#{newfname} done." unless $OPTS_q
+   puts "#{newfname} done." unless $OPT_q
 end
