@@ -12,10 +12,12 @@ begin
 
    conf = PhotoAlbum::Config::new
    cgi = CGI::new
-   if cgi.valid?( 'date' ) and cgi.params['date'][0] =~ /^\d{6}$/ then
-      	 album = PhotoAlbum::AlbumMonth::new( cgi, "month.rhtml", conf )
+   if cgi.valid?( 'search' ) then
+      album = PhotoAlbum::AlbumSearch::new( cgi, "search.rhtml", conf )
    elsif cgi.valid?( 'photo' ) then
       album = PhotoAlbum::AlbumPhoto::new( cgi, "photo.rhtml", conf )
+   elsif cgi.valid?( 'date' ) and cgi.params['date'][0] =~ /^\d{6}$/ then
+      album = PhotoAlbum::AlbumMonth::new( cgi, "month.rhtml", conf )
    else
       album = PhotoAlbum::AlbumLatest::new( cgi, "latest.rhtml", conf )
    end

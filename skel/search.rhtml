@@ -1,0 +1,25 @@
+  <%= @conf.header %>
+  <hr class="sep">
+
+  <% if @cgi.valid?( 'q' ) then %>
+  <% result = search( @cgi.params['q'][0] ).sort{|a,b| b <=> a } %>
+  <p><%= result.size %> 件ヒットしました。</p>
+  <% result.each do |photo| %>
+  <div class="day">
+  <% unless photo.title.empty? then %>
+  <h2><a href="<%= @conf.index %>?photo=<%= photo.name %>"><%= photo.title %></a></span></h2>
+  <% end %>
+  <div class="body">
+  <div class="thumbnail">
+  <% photo = photo.to_photofile( @conf ) %>
+  <a href="<%= @conf.index %>?photo=<%= photo.name %>"><img src="<%= photo.thumbnail %>" alt="<%= photo.title %>" title="<%= photo.title %>" <%= html_imgsize(photo.thumbnail) %>></a>
+  </div>
+  <div class="datetime">撮影日時: <%= photo.datetime.strftime( '%Y-%m-%d %H:%M:%S' ) %></div>
+  <div class="description"><%= photo.description ? @conf.shorten( photo.description.strip_tag ) : "" %></div>
+  </div>
+  </div>
+  <% end %>
+  <% end %>
+
+  <hr class="sep">
+  <%= @conf.footer %>

@@ -28,6 +28,27 @@ def mobile_navi
 end
 
 #
+# search_form
+#
+def search_form( opt = {} )
+   opt['button_name'] ||= "Search"
+   opt['size'] ||= 20
+   opt['default_text'] ||= ""
+   opt['first_form'] ||= ""
+   opt['last_form'] ||= ""
+%Q[
+	<form class="search" method="GET" action="#{ @conf.index }">
+	<div class="search">
+	#{opt['first_form']}
+	<input class="search" type="text" name="q" size="#{opt['size']}" value="#{ @cgi.valid?( 'q' ) ? CGI.escapeHTML(@cgi.params['q'][0]) : opt['default_text'] }">
+	<input class="search" type="submit" name="search" value="#{opt['button_name']}">
+	#{opt['last_form']}
+	</div>
+	</form>
+]
+end
+
+#
 # make calendar
 #
 def calendar

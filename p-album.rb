@@ -24,6 +24,10 @@ class String
    def to_euc
       NKF::nkf( '-m0 -e', self )
    end
+
+   def strip_tag
+      self.gsub(/<.+?>/m, " ").gsub(/\s+/, " ")
+   end
 end
 
 class CGI
@@ -937,6 +941,29 @@ module PhotoAlbum
 	 @photo = @photo.to_photofile( @conf )
 	 @photo.do_convert( rotate, scale )
 	 @photo.make_thumbnail
+      end
+   end
+
+   class AlbumSearch < AlbumBase
+      def initialize ( cgi, rhtml, conf )
+         super
+      end
+
+      def search ( q )
+         r = []
+         @io.month_list.sort.reverse.each do |m|
+	    @io.load( m ).each_day do |d|
+	       d.each_photo do |photo|
+		  [ :title, :description ].each do |key|
+		     if photo.send( key ) and photo.send( key ) =~ /#{q}/i then
+			r << photo
+			break
+		     end
+		  end
+	       end
+	    end
+	 end
+         r
       end
    end
 end
