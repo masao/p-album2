@@ -238,6 +238,10 @@ module PhotoAlbum
 	    yield @days[day]
 	 end
       end
+
+      def empty?
+         @days.empty?
+      end
    end
 
    class Config
@@ -332,7 +336,7 @@ module PhotoAlbum
       def load_cgi_conf
 	 raise AlbumError, 'No @data_path variable.' unless @data_path
 	 @data_path += '/' if /\/$/ !~ @data_path
-	 raise AlbumError, 'Do not set @data_path as same as MoBo system directory.' if @data_path == "#{PATH}/"
+	 raise AlbumError, 'Do not set @data_path as same as p-album system directory.' if @data_path == "#{PATH}/"
 	 variables = [
 	    :html_title, :index_page, :recent,
 	    :header, :footer, :theme, :css
@@ -622,10 +626,17 @@ module PhotoAlbum
 
    class AlbumBase
       attr_reader :cookies
+      attr_reader :conf
 
       def initialize( cgi, rhtml, conf )
 	 @cgi, @rhtml, @conf = cgi, rhtml, conf
 	 @cookies = []
+         unless @conf.io_class then
+            require 'p-album/pstoreio'
+            @conf.io_class = PStoreIO
+         end
+         @io = @conf.io_class.new( self )
+
 	 @all_photos = []
 	 each_month do |m|
 	    @all_photos += photo_list( m )
@@ -686,27 +697,21 @@ module PhotoAlbum
       end
 
       def month_list
-	 result = []
-	 Dir::glob( "#{@conf.data_path}??????.db" ).each do |f|
-	    result << File::basename( f, '.db' )
-	 end
-	 result
+	 @io.month_list
       end
 
       def each_month
-	 month_list.sort.each do |m|
+	 @io.month_list.sort.each do |m|
 	    yield m
 	 end
       end
 
       def photo_list( month )
 	 result = []
-	 PStore::new( "#{@conf.data_path}#{month}.db" ).transaction do |db|
-	    db['p-album'].each_day do |day|
-	       day.each_photo do |photo|
-		  result << photo.name
-	       end
-	    end
+	 @io.load( month ).each_day do |day|
+            day.each_photo do |photo|
+               result << photo.name
+            end
 	 end
 	 result
       end
@@ -729,10 +734,8 @@ module PhotoAlbum
 
 	 @days = {}
 	 each_month do |m|
-	    PStore::new( "#{@conf.data_path}#{m}.db" ).transaction do |db|
-	       db['p-album'].each_day do |day|
-		  @days[day.to_s] = day
-	       end
+	    @io.load( m ).each_day do |day|
+               @days[day.to_s] = day
 	    end
 	 end
       end
@@ -759,16 +762,11 @@ module PhotoAlbum
 	    month = '01' if month.empty?
 	 end
 	 if !Date.exist?(year.to_i, month.to_i, 1) then
+	    year  = Time::now.strftime( '%Y' )
 	    month = Time::now.strftime( '%m' )
 	 end
 
-	 if FileTest::exist?( "#{@conf.data_path}#{year}#{month}.db" )
-	    PStore::new( "#{@conf.data_path}#{year}#{month}.db" ).transaction do |db|
-	       @month = db['p-album']
-	    end
-	 else
-	    @month = Month::new( month )
-	 end
+	 @month = @io.load( "#{year}#{month}" )
       end
    end
 
@@ -778,15 +776,14 @@ module PhotoAlbum
 
 	 m = @cgi['photo'][0][0, 6]
 	 d = @cgi['photo'][0][0, 8]
-	 PStore::new( "#{@conf.data_path}#{m}.db" ).transaction do |db|
-	    if db['p-album'].include?( d ) then
-	       db['p-album'][d].each_photo do |photo|
-		  if photo.name == @cgi['photo'][0] then
-		     @photo = photo.to_photofile( @conf )
-		     break
-		  end
-	       end
-	    end
+	 month = @io.load( m )
+         if month.include?( d ) then
+            month[d].each_photo do |photo|
+               if photo.name == @cgi['photo'][0] then
+                  @photo = photo.to_photofile( @conf )
+                  break
+               end
+            end
 	 end
 	 unless @photo then
 	    raise AlbumError, 'No photo found.'
@@ -845,11 +842,10 @@ module PhotoAlbum
 	    @added << PhotoFile::new( name, @conf )
 	    m = photo.datetime.strftime('%Y%m')
 	    d = photo.datetime.strftime('%Y%m%d')
-	    PStore::new( "#{@conf.data_path}#{m}.db" ).transaction do |db|
-	       db['p-album'] = Month::new( m ) unless db.root?( 'p-album' )
-	       db['p-album'][d] = Day::new( d ) unless db['p-album'][d]
-	       db['p-album'][d] << photo
-	    end
+	    month = @io.load( m )
+            month[d] ||= Day::new( d )
+            month[d] << photo
+            @io.save( m, month )
 	 end
       end
    end
@@ -859,16 +855,16 @@ module PhotoAlbum
 	 if @photo then
 	    m = @photo.datetime.strftime('%Y%m')
 	    d = @photo.datetime.strftime('%Y%m%d')
-	    PStore::new( "#{@conf.data_path}#{m}.db" ).transaction do |db|
-	       newday = Day::new( d )
-	       db['p-album'][d].each_photo do |photo|
-		  if photo.name == @photo.name then
-		     photo = @photo.to_photo
-		  end
-		  newday << photo
-	       end
-	       db['p-album'][d] = newday
-	    end
+	    month = @io.load( m )
+            day = Day::new( d )
+            month[d].each_photo do |photo|
+               if photo.name == @photo.name then
+                  photo = @photo.to_photo
+               end
+               day << photo
+            end
+            month[d] = day
+            @io.save( m, month )
 	 end
       end
    end
@@ -898,19 +894,18 @@ module PhotoAlbum
 	 if @cgi.valid?( 'confirm' ) and @cgi.valid?( 'photo' ) then
 	    m = @cgi['photo'][0][0, 6]
 	    d = @cgi['photo'][0][0, 8]
-	    PStore::new( "#{@conf.data_path}#{m}.db" ).transaction do |db|
-	       newday = Day::new( d )
-	       db['p-album'][d].each_photo do |photo|
-		  unless photo.name == @cgi['photo'][0] then
-		     newday << photo
-		  end
-	       end
-	       if newday.size > 0
-		  db['p-album'][d] = newday
-	       else
-		  db['p-album'].delete( d )
-	       end
+	    month = @io.load( m )
+            day = Day::new( d )
+            month[d].each_photo do |photo|
+               unless photo.name == @cgi['photo'][0] then
+                  day << photo
+               end
+            end
+            month[d] = day
+            if month[d].size == 0
+               month.delete( d )
 	    end
+            @io.save( m, month )
 
 	    begin
 	       File::unlink( @photo.orig_path )
@@ -944,8 +939,6 @@ module PhotoAlbum
 	 @photo = @photo.to_photofile( @conf )
 	 @photo.do_convert( rotate, scale )
 	 @photo.make_thumbnail
-
-	 save_photo_db
       end
    end
 end
