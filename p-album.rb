@@ -53,7 +53,8 @@ module PhotoAlbum
 	 @title, @description = title, description
 	 @convert = @rotate = @scale = nil
 	 unless @datetime
-	    @datetime = Time::local( *(@name.scan(/^(\d\d\d\d)(\d\d)(\d\d)t(\d\d)(\d\d)(\d\d)$/)[0]) )
+	    # STDERR.puts @name
+	    @datetime = Time::local( *(@name.scan(/^(\d\d\d\d)(\d\d)(\d\d)t(\d\d)(\d\d)(\d\d)/)[0]) )
 	 end
       end
 
@@ -73,7 +74,7 @@ module PhotoAlbum
       FILENAME_PATTERN = "%Y%m%dt%H%M%S#{EXT}"
 
       def initialize( name, conf, datetime = nil, title = nil, description = nil, convert = nil, rotate = nil, scale = nil )
-	 super(name, datetime, title, description, convert, rotate, scale)
+	 super( name, datetime, title, description, convert, rotate, scale )
 	 @conf = conf
       end
 
@@ -98,7 +99,7 @@ module PhotoAlbum
       end
 
       def make_thumbnail
-	 Convert::new( @conf.convert ).convert( *(@conf.thumbnail_opts << orig_path << thumbnail) )
+	 Convert::new( @conf.convert ).convert( *(@conf.thumbnail_opts.dup << orig_path << thumbnail) )
       end
 
       def do_convert
@@ -493,7 +494,7 @@ CSS
 	    if db['p-album'].include?( d ) then
 	       db['p-album'][d].each_photo do |photo|
 		  if photo.name == @cgi['photo'][0] then
-		     @photo = PhotoFile::new( photo.name, conf )
+		     @photo = photo.to_photofile( @conf )
 		     break
 		  end
 	       end
@@ -554,7 +555,7 @@ CSS
 	    newday = Day::new( d )
 	    db['p-album'][d].each_photo do |photo|
 	       if photo.name == @cgi['photo'][0] then
-		  photo = @photo
+		  photo = @photo.to_photo
 	       end
 	       newday << photo
 	    end
