@@ -130,7 +130,7 @@ module PhotoAlbum
       def do_convert( rotate, scale )
 	 # STDERR.puts "do_convert"
 	 convert = Convert.new( @conf.convert )
-	 File::cp( path, orig_path(true), true ) unless FileTest::exist?(orig_path(true))
+	 File::cp( path, orig_path(true) ) unless FileTest::exist?(orig_path(true))
 	 if rotate and rotate != 0 then
 	    convert.convert( "-rotate", rotate.to_s, path, tempname )
 	    File::cp( tempname, path )
