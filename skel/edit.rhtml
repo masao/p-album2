@@ -3,22 +3,22 @@
 
   <div class="form">
   <form action="<%= @conf.update %>" method="POST">
-  <input type="hidden" name="photo" value="<%= @photo.basename %>">
+  <input type="hidden" name="photo" value="<%= @photo.name %>">
   <p>タイトル: <input class="field" type="text" name="title" size="40" value="<%= @photo.title %>"></p>
   <p>説明:<br><textarea rows="15" cols="70" name="description"><%= @photo.description %></textarea></p>
-  <input type="hidden" name="photo" value="<%= @photo.basename %>">
+  <input type="hidden" name="photo" value="<%= @photo.name %>">
   <input type="submit" name="savephoto" value=" 登録 ">
   </form>
   </div>
   <div class="form">
-  <div class="photo"><img src="<%= @photo.thumbnail %>" alt="<%= @photo.title %>" title="<%= @photo.title %>" <%= ImageSize::new( open(@photo.thumbnail) ).html_imgsize %>
+  <div class="photo"><img src="<%= @photo.thumbnail %>" alt="<%= @photo.title %>" title="<%= @photo.title %>" <%= html_imgsize(@photo.thumbnail) %>
   <div class="image_size">
-  <% image_size = ImageSize::new( open(@photo.path) ) %>
+  <% image_size = ImageSize::new(open(@photo.path) ) %>
   <%= image_size.get_width %> x <%= image_size.get_height %>
   </div>
   </div>
   <form action="<%= @conf.update %>" method="GET">
-  <input type="hidden" name="photo" value="<%= @photo.basename %>">
+  <input type="hidden" name="photo" value="<%= @photo.name %>">
   <p>画像回転:
      <select name="rotate" class="field">
        <option value="">無し</option>
@@ -39,7 +39,7 @@
 
   <div class="form">
   <form action="<%= @conf.update %>">
-  <input type="hidden" name="photo" value="<%= @photo.basename %>">
+  <input type="hidden" name="photo" value="<%= @photo.name %>">
   <input class="field" type="submit" name="remove" value="→ この写真を削除する">
   </form>
   </div>
@@ -47,7 +47,7 @@
   <% if @photo.rotate || @photo.scale || @photo.convert then %>
   <div class="form">
   <form action="<%= @conf.update %>">
-  <input type="hidden" name="photo" value="<%= @photo.basename %>">
+  <input type="hidden" name="photo" value="<%= @photo.name %>">
   <input class="field" type="submit" name="original" value="→ 変換前の写真に戻す">
   </form>
   </div>

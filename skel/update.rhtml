@@ -1,35 +1,19 @@
 <%= @conf.header %>
 <hr class="sep">
 
-<% if @imported then %>
+<% if @added.size > 0 then %>
 <div class="day">
-<h2>追加結果</h2>
+<h2>新規追加ファイル</h2>
 <ul>
-<% @imported.keys.sort.each do |f| %>
-  <% if @imported[f] then %>
-  <li><%= File::basename( f ) %> → <a href="<%= @conf.update %>?photo=<%= @imported[f].basename %>;edit=1"><%= File::basename( @imported[f].path ) %></a>
-  <% else %>
-  <li><%= File::basename( f ) %> → （登録済）
-  <% end %>
+<% @added.sort.each do |photo| %>
+  <a href="<%= @conf.update %>?photo=<%= photo.name %>;edit=1"><img src="<%= photo.thumbnail %>" <%= html_imgsize(photo.thumbnail) %>></a>
 <% end %>
 </ul>
 </div>
+<hr class="sep">
 <% end %>
 
-<hr class="sep">
 <p>ファイルを取り込みます。</p>
-<p>
-以下で、サーバ上の<tt><%= @conf.import_dir %></tt>にファイルを追加して取り込むか、ファイルを直接アップロードするかのいずれかの方法を選べます。
-</p>
-
-<form action="<%= @conf.update %>" method="POST">
-<div class="day">
-<h2>画像の取り込み</h2>
-<div class="body">
-<input type="submit" name="import" value=" → 取り込みを開始 ">
-</div>
-</div>
-</form>
 
 <form action="<%= @conf.update %>" method="POST">
 <div class="day">
@@ -37,7 +21,7 @@
 <div class="body">
 <ol>
 <% 1.upto 10 do |i| %>
-<li><input type="file" name="file#{i}">
+<li><input type="file" name="file<%= i %>">
 <% end %>
 </ol>
 <input type="submit" name="upload" value=" → 直接アップロードする ">

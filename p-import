@@ -1,0 +1,22 @@
+#!/usr/bin/env ruby
+# $Id$
+
+# 画像ファイルの取り込みを行う
+
+if FileTest::symlink?( __FILE__ ) then
+   org_path = File::dirname( File::readlink( __FILE__ ) )
+else
+   org_path = File::dirname( __FILE__ )
+end
+$:.unshift( org_path.untaint )
+require 'p-album'
+
+if $0 == __FILE__
+   conf = PhotoAlbum::Config::new
+   ARGV.each do |file|
+      photo = PhotoAlbum::PhotoFile::load_file( file, conf )
+      if photo
+	 puts "#{file} -> #{photo.path}"
+      end
+   end
+end
