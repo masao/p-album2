@@ -58,7 +58,7 @@ if ARGV[0] and File::basename( ARGV[0] ) == "metadata.yaml"
       m = photo.datetime.strftime('%Y%m')
       d = photo.datetime.strftime('%Y%m%d')
       month_list[m] = Month::new( m ) unless month_list.key?( m )
-      month_list[m] << Day::new( d ) unless month_list.include?( d )
+      month_list[m] << Day::new( d ) unless month_list[m].include?( d )
       month_list[m][d] << photo
       p = photo.to_photofile( conf )
       File::chmod( conf.perm, p.path, p.orig_path, p.thumbnail ) if conf.perm
