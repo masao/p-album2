@@ -8,14 +8,12 @@
 def title_tag
    r = "<title>#{CGI::escapeHTML( @conf.html_title )}"
    case @mode
-   when 'day', 'comment'
-      r << " (#{account_title}#{@year}/#{@month}/#{@day})" if @date
+   when /^photo/
+      r << " - #{@photo.title}" if @photo
    when 'month'
-      r << " (#{account_title}#{@year}/#{@month})" if @date
+      r << " (#{@month.month[0,4]}-#{@month.month[4,2]})" if @date
    when 'edit'
-      r << " (#{navi_edit} #{@year}/#{@month})" if @date
-   when 'report'
-      r << " (#{account_title}#{@year})" if @year
+      r << " (#{navi_edit})" if @date
    when 'conf'
       r << ' (ÀßÄê)'
    when 'saveconf'
