@@ -3,7 +3,7 @@
 
   <div class="update day">
   <div class="form">
-  <div class="photo"><img src="<%= @photo.thumbnail %>" alt="<%= @photo.title %>" title="<%= @photo.title %>" <%= html_imgsize(@photo.thumbnail) %>>
+  <div class="thumbnail"><img src="<%= @photo.thumbnail %>" alt="<%= @photo.title %>" title="<%= @photo.title %>" <%= html_imgsize(@photo.thumbnail) %>>
   <div class="image_size">
   <% image_size = ImageSize::new(open(@photo.path) ) %>
   <%= image_size.get_width %> x <%= image_size.get_height %>
