@@ -130,7 +130,7 @@ module PhotoAlbum
       def do_convert
 	 # STDERR.puts "do_convert"
 	 convert = Convert.new( @conf.convert )
-	 File::copy( path, orig_path( true ) ) unless FileTest::exist? orig_path
+	 File::cp( path, orig_path( true ) ) unless FileTest::exist? orig_path
 	 if @rotate then
 	    convert.convert( "-rotate", @rotate.to_s, path, tempname )
 	    File::cp( tempname, path )
@@ -889,7 +889,6 @@ module PhotoAlbum
 	 @photo.make_thumbnail
 	 @photo.rotate = nil
 	 @photo.scale = nil
-	 @photo.convert = nil
       end
    end
 
@@ -901,6 +900,7 @@ module PhotoAlbum
 	    d = @cgi['photo'][0][0, 8]
 	    PStore::new( "#{@conf.data_path}#{m}.db" ).transaction do |db|
 	       newday = Day::new( d )
+	       newday_size = 0
 	       db['p-album'][d].each_photo do |photo|
 		  unless photo.name == @cgi['photo'][0] then
 		     newday << photo
