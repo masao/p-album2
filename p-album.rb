@@ -5,9 +5,18 @@ require 'ftools'
 require 'date'
 require 'pstore'
 require 'nkf'
-require 'erb'
 require 'image_size'
-require 'tempfile'
+begin
+   require 'erb_fast'
+   ERbLight = ERB
+rescue LoadError
+   begin
+      require 'erb'
+      ERbLight = ERB
+   rescue LoadError
+      require 'erb/erbl'
+   end
+end
 
 PHOTOALBUM_VERSION = '0.1'
 
@@ -26,6 +35,22 @@ end
 def html_imgsize( file )
    is = ImageSize::new(open(file))
    %Q[width="#{is.get_width}" height="#{is.get_height}"]
+end
+
+#
+# Safe Module
+#
+require 'thread'
+module Safe
+   def safe( level = 4 )
+      result = nil
+      Thread.start {
+	 $SAFE = level
+	 result = yield
+      }.join
+      result
+   end
+   module_function :safe
 end
 
 module PhotoAlbum
@@ -240,19 +265,36 @@ module PhotoAlbum
 	 end
       end
 
+      def mobile_agent?
+	 %r[(DoCoMo|J-PHONE|UP\.Browser|DDIPOCKET|ASTEL|PDXGW|Palmscape|Xiino|sharp pda browser|Windows CE|L-mode)]i =~ ENV['HTTP_USER_AGENT']
+      end
+
       # loading p-album.conf in current directory
       def load
 	 @secure = true unless @secure
 	 @options = {}
 	 eval( File::open( "p-album.conf" ){|f| f.read }.untaint )
+
+	 # language setup
+	 @lang = 'ja' unless @lang
+	 begin
+	    instance_eval( File::open( "#{PhotoAlbum::PATH}/p-album/lang/#{@lang}.rb" ){|f| f.read }.untaint )
+	 rescue Errno::ENOENT
+	    @lang = 'ja'
+	    retry
+	 end
+
 	 @images_dir = './images/' unless @images_dir
 	 @thumbs_dir = './thumbs/' unless @thumbs_dir
 	 @perm = nil unless @perm
+
 	 @index = './' unless @index
 	 @update = './update.rb' unless @update
-	 @html_title = '' unless @html_title
+
 	 @index_page = '' unless @index_page
+	 @author_name = '' unless @author_name
 	 @recent = 5 unless @recent
+	 @html_title = '' unless @html_title
 	 @header = '' unless @header
 	 @footer = '' unless @footer
 	 @theme = 'default' if not @theme and not @css
@@ -284,11 +326,280 @@ module PhotoAlbum
 	 rescue IOError, Errno::ENOENT
 	 end
       end
+
+      def method_missing( *m )
+	 if m.length == 1 then
+	    instance_eval( <<-SRC
+                             def #{m[0]}
+                                @#{m[0]}
+                             end
+                             def #{m[0]}=( p )
+                                @#{m[0]} = p
+                             end
+                             SRC
+             )
+          end
+          nil
+       end
+
    end
 
+   #
+   # class Plugin
+   #  plugin management class
+   #
+   class Plugin
+      attr_reader :cookies
+
+      def initialize( params )
+	 @header_procs = []
+	 @footer_procs = []
+	 @onload_procs = []
+	 @update_procs = []
+	 @body_enter_procs = []
+	 @body_leave_procs = []
+	 @edit_procs = []
+	 @form_procs = []
+	 @conf_keys = []
+	 @conf_procs = {}
+	 @menu_procs = []
+	 @plugin_procs = {}
+	 @cookies = []
+
+	 params.each_key do |key|
+	    eval( "@#{key} = params['#{key}']" )
+	 end
+
+	 # for ruby 1.6.x support
+	 if @conf.secure then
+	    @cgi.params.each_value do |p|
+	       p.each {|v| v.taint}
+	    end
+	 end
+
+	 # loading plugins
+	 @plugin_files = []
+	 plugin_path = @conf.plugin_path || "#{PATH}/plugin"
+	 plugin_file = ''
+	 begin
+	    Dir::glob( "#{plugin_path}/*.rb" ).sort.each do |file|
+	       plugin_file = file
+	       load_plugin( file )
+	       @plugin_files << plugin_file
+	    end
+	 rescue Exception
+	    raise PluginError::new( "Plugin error in '#{File::basename( plugin_file )}'.\n#{$!}" )
+	 end
+      end
+
+      def load_plugin( file )
+	 @resource_loaded = false
+	 begin
+	    res_file = File::dirname( file ) + "/#{@conf.lang}/" + File::basename( file )
+	    open( res_file.untaint ) do |src|
+	       instance_eval( src.read.untaint )
+	       STDERR.puts res_file
+	    end
+	    @resource_loaded = true
+	 rescue IOError, Errno::ENOENT
+	 end
+	 open( file.untaint ) do |src|
+	    instance_eval( src.read.untaint )
+	    STDERR.puts file
+	 end
+      end
+
+      def eval_src( src, secure )
+	 self.taint
+	 @conf.taint
+	 @body_enter_procs.taint
+	 @body_leave_procs.taint
+	 return Safe::safe( secure ? 4 : 1 ) do
+	    eval( src )
+	 end
+      end
+
+      private
+      def add_header_proc( block = Proc::new )
+	 @header_procs << block
+      end
+
+      def header_proc
+	 r = []
+	 @header_procs.each do |proc|
+	    r << proc.call
+	 end
+	 r.join.chomp
+      end
+
+      def add_footer_proc( block = Proc::new )
+	 @footer_procs << block
+      end
+
+      def footer_proc
+	 r = []
+	 @footer_procs.each do |proc|
+	    r << proc.call
+	 end
+	 r.join.chomp
+      end
+
+      def add_onload_proc( block = Proc::new )
+	 @onload_procs << block
+      end
+
+      def onload_proc
+	 r = []
+	 @onload_procs.each do |proc|
+	    r << proc.call
+	 end
+	 r.join.strip
+      end
+
+      def add_update_proc( block = Proc::new )
+	 @update_procs << block
+      end
+
+      def update_proc
+	 @update_procs.each do |proc|
+	    proc.call
+	 end
+	 ''
+      end
+
+      def add_body_enter_proc( block = Proc::new )
+	 @body_enter_procs << block
+      end
+
+      def body_enter_proc( date )
+	 r = []
+	 @body_enter_procs.each do |proc|
+	    r << proc.call( date )
+	 end
+	 r.join
+      end
+
+      def add_body_leave_proc( block = Proc::new )
+	 @body_leave_procs << block
+      end
+
+      def body_leave_proc( date )
+	 r = []
+	 @body_leave_procs.each do |proc|
+	    r << proc.call( date )
+	 end
+	 r.join
+      end
+
+      def add_edit_proc( block = Proc::new )
+	 @edit_procs << block
+      end
+
+      def edit_proc( date )
+	 r = []
+	 @edit_procs.each do |proc|
+	    r << proc.call( date )
+	 end
+	 r.join
+      end
+
+      def add_form_proc( block = Proc::new )
+	 @form_procs << block
+      end
+
+      def form_proc( date )
+	 r = []
+	 @form_procs.each do |proc|
+	    r << proc.call( date )
+	 end
+	 r.join
+      end
+
+      def add_conf_proc( key, label, block = Proc::new )
+	 return unless @mode =~ /^(conf|saveconf)$/
+	 @conf_keys << key unless @conf_keys.index( key )
+	 @conf_procs[key] = [label, block]
+      end
+
+      def each_conf_key
+	 @conf_keys.each do |key|
+	    yield key
+	 end
+      end
+
+      def conf_proc( key )
+	 r = ''
+	 label, block = @conf_procs[key]
+	 r = block.call if block
+	 r
+      end
+
+      def conf_label( key )
+	 label, block = @conf_procs[key]
+	 label
+      end
+
+      def add_menu_proc( block = Proc::new )
+	 @menu_procs << block
+      end
+
+      def menu_proc
+	 r = []
+	 @menu_procs.each do |proc|
+	    r << proc.call
+	 end
+	 r.compact
+      end
+
+      def add_plugin_proc( key, block = Proc::new )
+	 return unless @mode == 'plugin'
+	 @plugin_procs[key] = block
+      end
+
+      def plugin_proc( key )
+	 r = ''
+	 block = @plugin_procs[key]
+	 r = block.call if block
+	 ERbLight.new( r ).result( binding )
+      end
+
+      def add_cookie( cookie )
+	 begin
+	    @cookies << cookie
+	 rescue SecurityError
+	    raise SecurityError, "can't use cookies in plugin when secure mode"
+	 end
+      end
+
+      def apply_plugin( str, remove_tag = false )
+	 r = str.dup
+	 if @conf.options['apply_plugin'] and str.index( '<%' ) then
+	    r = str.untaint if $SAFE < 3
+	    r = ERbLight.new( r ).result( binding )
+	 end
+	 r.gsub!( /<.*?>/, '' ) if remove_tag
+	 r
+      end
+
+      def method_missing( *m )
+	 super if @debug
+	 # ignore when no plugin
+      end
+   end
+
+   #
+   # exception classes
+   #
+   class AlbumError < StandardError; end
+   class PermissionError < AlbumError; end
+   class PluginError < AlbumError; end
+
    class AlbumBase
+      attr_reader :cookies
+
       def initialize( cgi, rhtml, conf )
 	 @cgi, @rhtml, @conf = cgi, rhtml, conf
+	 @cookies = []
 
 	 month = @cgi.valid?( 'month' ) ? @cgi['month'][0] : ""
 	 if !Date.exist?( month[0,4].to_i, month[4,2].to_i, 1) then
@@ -320,23 +631,45 @@ module PhotoAlbum
       end
 
       def eval_rhtml( prefix = '' )
-	 begin
-	    files = ["header.rhtml", @rhtml, "footer.rhtml"]
-	    rhtml = files.collect {|file|
-	       path = "#{PATH}/skel/#{prefix}#{file}"
+	 # load plugin files
+	 load_plugins
+
+	 # load and apply rhtmls
+	 files = ["header.rhtml", @rhtml, "footer.rhtml"]
+	 rhtml = files.collect {|file|
+	    path = "#{PATH}/skel/#{prefix}#{file}"
+	    begin
+	       File::open( "#{path}.#{@conf.lang}" ) {|f| f.read }
+	    rescue
 	       File::open( path ) {|f| f.read }
-	    }.join
-	    r = ERB::new( rhtml.untaint ).result( binding )
-	    # erb again for @conf.header and @conf.footer
-	    r = ERB::new( r.untaint ).result( binding )
-	 rescue Exception
-	    raise
-	 end
-	 return r
+	    end
+	 }.join
+	 r = ERbLight::new( rhtml.untaint ).result( binding )
+	 r = ERbLight::new( r ).src
+
+	 # apply plugins
+	 r = @plugin.eval_src( r.untaint, @conf.secure ) if @plugin
+
+	 @cookies += @plugin.cookies
+	 r
       end
 
       def mode
 	 self.class.to_s.sub( /^PhotoAlbum::Album/, '' ).downcase
+      end
+
+      def load_plugins
+	 calendar
+	 @plugin = Plugin::new(
+			       'conf' => @conf,
+			       'mode' => mode,
+			       'cgi' => @cgi,
+			       'years' => @years,
+			       'date' => "#{@year}#{@month}",
+			       'year' => @year,
+			       'month' => @month,
+			       'monthly' => @monthly
+			       )
       end
 
       def photo_list( month )
@@ -352,103 +685,17 @@ module PhotoAlbum
 	 result
       end
 
-      def calc_links
-	 if mode == 'month' then
-	    y, m = @month.month[0, 4], @month.month[4, 2]
-	    if m == "01" then
-	       @prev_month = "#{ sprintf('%04d', y.to_i-1) }12"
-	    else
-	       @prev_month = "#{y}#{ sprintf('%02d', m.to_i-1) }"
-	    end
-	    if m == "12" then
-	       @next_month = "#{y.succ}01"
-	    else
-	       @next_month = "#{y}#{m.succ}"
-	    end
-	 end
-
-	 if @photo then
-	    m = @photo.name[0, 6]
-	    mlist = month_list
-	    plist = photo_list( m )
-	    idx = plist.index( @photo.name )
-	    if idx == 0 then
-	       if mlist.index( m ) != 0 then
-		  @prev_photo = photo_list( mlist[ mlist.index(m) - 1 ] ).last
-	       end
-	    else
-	       @prev_photo = plist[ idx - 1 ]
-	    end
-	    if idx == plist.size - 1 then
-	       if mlist.index( m ) != mlist.size - 1 then
-		  @next_photo = photo_list( mlist[ mlist.index(m) + 1 ] ).last
-	       end
-	    else
-	       @next_photo = plist[ idx + 1 ]
-	    end
-	 end
-
-	 @years = {}
-	 month_list.sort.each do |month|
-	    year = month[0, 4]
-	    @years[year] = [] unless @years[year]
-	    @years[year] << month
-	 end
-      end
-
-      #
-      # default plugin-like settings
-      #
-      def navi
-	 calc_links
-	 result = %Q[<div class="adminmenu">\n]
-	 result << %Q[<span class="adminmenu"><a href="#{@conf.index_page}">トップ</a></span>\n] unless @conf.index_page.empty?
-	 result << %Q[<span class="adminmenu"><a href="#{@index}?photo=#{@prev_photo}">&laquo;前の写真</a></span>\n] if @prev_photo
-	 result << %Q[<span class="adminmenu"><a href="#{@index}?month=#{@prev_month}">&laquo;前月</a></span>\n] if @prev_month
-	 result << %Q[<span class="adminmenu"><a href="#{@conf.index}">最新</a></span>\n] unless mode == 'latest'
-	 result << %Q[<span class="adminmenu"><a href="#{@index}?photo=#{@next_photo}">次の写真&raquo;</a></span>\n] if @next_photo
-	 result << %Q[<span class="adminmenu"><a href="#{@index}?month=#{@next_month}">次月&raquo;</a></span>\n] if @next_month
-	 result << %Q[<span class="adminmenu"><a href="#{@conf.update}">更新</a></span>\n] if mode != 'edit'
-	 result << %Q[<span class="adminmenu"><a href="#{@conf.update}?photo=#{@photo.name}">編集</a></span>\n] if @photo
-	 result << %Q[<span class="adminmenu"><a href="#{@conf.update}?conf=1">設定</a></span>\n] unless mode =~ /^latest|month$/
-	 result << %Q[</div>]
-      end
-
       def calendar
-	 result = %Q[<div class="calendar">\n]
-	 @years.keys.each do |year|
-	    result << %Q[<div class="year">#{year} |]
-	    "01".upto( "12" ) do |m|
-	       if @years[year].include?( "#{year}#{m}" ) then
-		  result << %Q[<a href="#{@conf.index}?month=#{year}#{m}">#{m}</a>|]
-	       else
-		  result << %Q[#{m}|]
-	       end
+	 @years = {}
+	 month_list.sort.each do |m|
+	    year = m[0, 4]
+	    if photo_list( m ).size > 0 then
+	       @years[year] = [] unless @years[year]
+	       @years[year] << m
 	    end
-	    result << "</div>"
 	 end
-	 result << "</div>"
-	 result
-      end
-
-      def theme_url; 'theme'; end
-
-      def css_tag
-	 if @conf.theme and @conf.theme.length > 0 then
-	    css = "#{theme_url}/#{@conf.theme}/#{@conf.theme}.css"
-	    title = css
-	 else
-	    css = @css
-	 end
-	 title = CGI::escapeHTML( File::basename( css, '.css' ) )
-	 <<-CSS
-<meta http-equiv="content-style-type" content="text/css">
-<link rel="stylesheet" href="#{css}" title="#{title}" type="text/css" media="all">
-CSS
       end
    end
-
-   class AlbumError < StandardError; end
 
    class AlbumLatest < AlbumBase
       def initialize ( cgi, rhtml, conf )
@@ -510,6 +757,17 @@ CSS
 	 unless @photo then
 	    raise AlbumError, 'No photo found.'
 	 end
+      end
+   end
+
+   #
+   # class AlbumConf
+   #  show configuration form
+   #
+   class AlbumConf < AlbumBase
+      def initialize( cgi, rhtml, conf )
+	 super
+	 @key = @cgi.params['conf'][0]
       end
    end
 
