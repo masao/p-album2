@@ -12,6 +12,13 @@
 
 require 'ftools'
 require 'yaml'
+if FileTest::symlink?( __FILE__ ) then
+   org_path = File::dirname( File::readlink( __FILE__ ) )
+else
+   org_path = File::dirname( __FILE__ )
+end
+org_path = File::join( org_path, ".." )
+$:.unshift( org_path.untaint )
 require 'p-album'
 
 include PhotoAlbum
@@ -29,21 +36,6 @@ if ARGV[0] and File::basename( ARGV[0] ) == "metadata.yaml"
       name = File::basename( fname, PhotoFile::EXT )
       title = v['title']
       description = v['description']
-      rotate = scale = nil
-      if v['convert']
-	 options = v['convert'].split
-	 while opt = options.shift
-	    case opt
-	    when "-rotate"
-	       rotate = options.shift.to_i
-	    when "-scale", "-geometry"
-	       val = options.shift.sub(/%$/, "").to_i
-	       scale = val
-	    else
-	       STDERR.puts "Unknown convert option: #{opt}"
-	    end
-	 end
-      end
 
       vals = v.keys - [ 'datetime', 'title', 'description', 'convert' ]
       if vals.size > 0
@@ -62,7 +54,7 @@ if ARGV[0] and File::basename( ARGV[0] ) == "metadata.yaml"
 	       conf.thumbs_dir + fname,
 	       true )
 
-      photo = Photo::new( name, datetime, title, description, rotate, scale )
+      photo = Photo::new( name, datetime, title, description )
       photo_list << photo
       p = photo.to_photofile( conf )
       File::chmod( conf.perm, p.path, p.orig_path, p.thumbnail ) if conf.perm
