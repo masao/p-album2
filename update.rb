@@ -22,6 +22,8 @@ begin
 		album = PhotoAlbum::AlbumConvertPhoto::new( cgi, "edit.rhtml", conf )
 	elsif cgi.valid?( 'original' )
 		album = PhotoAlbum::AlbumOriginalPhoto::new( cgi, "edit.rhtml", conf )
+	elsif cgi.valid?( 'remove' )
+		album = PhotoAlbum::AlbumRemovePhoto::new( cgi, "remove.rhtml", conf )
 	elsif cgi.valid?( 'photo' )
 		album = PhotoAlbum::AlbumEdit::new( cgi, "edit.rhtml", conf )
 	else

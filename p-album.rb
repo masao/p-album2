@@ -572,6 +572,37 @@ CSS
 		end
 	end
 
+	class AlbumRemovePhoto < AlbumEdit
+		def initialize ( cgi, rhtml, conf )
+			super
+			if @cgi.valid?( 'confirm' ) then
+				m = @cgi['photo'][0][0, 6]
+				d = @cgi['photo'][0][0, 8]
+				db = PStore::new( "#{@conf.data_path}#{m}.db" )
+				db.transaction do
+					newday = Day::new( d )
+					db['p-album'][d].each_photo do |photo|
+						unless photo.basename == @cgi['photo'][0] then
+							newday << photo
+							newday_size += 1
+						end
+					end
+					db['p-album'][d] = newday if newday_size > 0
+				end
+
+				begin
+					File::unlink( @photo.orig_path )
+					File::unlink( @photo.thumbnail )
+					File::unlink( @photo.path )
+				rescue Errno::ENOENT
+				end
+
+				print @cgi.header( { 'Location' => @conf.index } )
+				exit
+			end
+		end
+	end
+
 	class AlbumConvertPhoto < AlbumEdit
 		def initialize ( cgi, rhtml, conf )
 			super

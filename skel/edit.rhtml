@@ -33,7 +33,14 @@
        <option value="20">20%</option>
      </select></p>
   <p>詳細な画像編集: <input class="field" type="text" name="convert" value="<%= @photo.convert %>"></p>
-  <input type="submit" name="convertphoto" value=" 画像を変換する ">
+  <input type="submit" name="convertphoto" value="画像を変換する">
+  </form>
+  </div>
+
+  <div class="form">
+  <form action="<%= @conf.update %>">
+  <input type="hidden" name="photo" value="<%= @photo.basename %>">
+  <input class="field" type="submit" name="remove" value="→ この写真を削除する">
   </form>
   </div>
 
@@ -41,7 +48,7 @@
   <div class="form">
   <form action="<%= @conf.update %>">
   <input type="hidden" name="photo" value="<%= @photo.basename %>">
-  <input class="field" type="submit" name="original" value=" → 元画像に戻す ">
+  <input class="field" type="submit" name="original" value="→ 変換前の写真に戻す">
   </form>
   </div>
   <% end %>
