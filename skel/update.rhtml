@@ -5,7 +5,7 @@
 <div class="day">
 <h2>新規追加ファイル</h2>
 <% @added.sort.each do |photo| %>
-  <a href="<%= @conf.update %><%%= anchor "<%= photo.name %>" %>"><img src="<%= photo.thumbnail %>" <%= html_imgsize(photo.thumbnail) %>></a>
+  <a href="<%= @conf.update %>?photo=<%= photo.name %>"><img src="<%= photo.thumbnail %>" <%= html_imgsize(photo.thumbnail) %>></a>
 <% end %>
 </div>
 <hr class="sep">
