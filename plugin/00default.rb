@@ -133,7 +133,7 @@ def charset
 end
 
 def content_script_type
-   %q[<meta http-equiv="content-script-type" content="text/javascript; charset=#{charset}">]
+   %Q[<meta http-equiv="content-script-type" content="text/javascript; charset=#{charset}">]
 end
 
 def index_page_tag
