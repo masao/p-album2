@@ -123,8 +123,24 @@ def index_page_tag
    if @conf.index_page and @conf.index_page.size > 0 then
       result << %Q[<link rel="start" title="#{navi_index}" href="#{@conf.index_page}">\n\t]
    end
+
+   if @prev_month then
+      result << %Q[<link rel="prev" title="#{navi_prev_month}" href="#{@conf.index}?date=#{@prev_month}">\n\t]
+   end
+   if @next_month then
+      result << %Q[<link rel="next" title="#{navi_next_month}" href="#{@conf.index}?date=#{@next_month}">\n\t]
+   end
+
+   if @prev_photo then
+      result << %Q[<link rel="prev" title="#{navi_prev_photo}" href="#{@conf.index}?photo=#{@prev_photo}">\n\t]
+   end
+   if @next_photo then
+      result << %Q[<link rel="next" title="#{navi_next_photo}" href="#{@conf.index}?photo=#{@next_photo}">\n\t]
+   end
+
    result << %Q[<link rel="last" title="#{navi_latest}" href="#{@conf.index}">\n\t]
-   result.chop.chop
+
+   result.strip
 end
 
 def theme_url; 'theme'; end
