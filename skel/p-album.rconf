@@ -26,20 +26,6 @@ theme = <%= @theme.dump %>
 css = <%= @css.dump %>
 
 #
-# genre/account
-#
-genre_income = <%= @genre_income.inspect %>
-genre_expense = <%= @genre_expense.inspect %>
-genre_move = <%= @genre_move.inspect %>
-account_list = <%= @account_list.inspect %>
-
-#
-# account group
-#
-vaccount_name = <%= @vaccount_name.inspect %>
-vaccount_list = <%= @vaccount_list.inspect %>
-
-#
 # options for plugins
 #
 options2 = {<% @options2.keys.sort.each do |k|
