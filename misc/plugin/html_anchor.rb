@@ -1,7 +1,7 @@
 # html_anchor $Revision$
 #
 # anchor: アンカーを「YYYYMMDD.html」「YYYYMM.html」形式に置き換える
-#         tDiaryから自動的に呼び出されるので、プラグインファイルを
+#         p-album2から自動的に呼び出されるので、プラグインファイルを
 #         設置するだけでよい。このプラグインを有効に使うためには、
 #         Webサーバ側の設定変更も必要。Apacheを使う場合、以下の2つの
 #         方法が知られている。
@@ -24,14 +24,9 @@
 #
 
 def anchor( s )
-	if /^(\d+)#?([pct]\d*)?$/ =~ s then
-		if $2 then
-			"#$1.html##$2"
-		else
-			"#$1.html"
-		end
-	else
-		""
-	end
+   if /^[0-9t]+$/ =~ s then
+      "#{s}.html"
+   else
+      ""
+   end
 end
-
