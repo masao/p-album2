@@ -3,7 +3,7 @@
 
   <% @month.each_day do |day| %>
   <div class="day">
-  <h2><span class="date"><a href="<%= @conf.index %>?month=<%= day.day[0,6] %>#<%= day.day %>" name="<%= day.day %>"><%= day %></a></span></h2>
+  <h2><span class="date"><a href="<%= @conf.index %>?date=<%= day.day[0,6] %>#<%= day.day %>" name="<%= day.day %>"><%= day %></a></span></h2>
   <div class="body">
   <% day.each_photo do |photo| %>
   <% photo = photo.to_photofile(@conf) %>
