@@ -7,7 +7,6 @@
 #
 html_title = <%= @html_title.dump %>
 index_page = <%= @index_page.dump %>
-hour_offset = <%= @hour_offset %>
 
 #
 # header / footer
