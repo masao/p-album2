@@ -70,13 +70,11 @@ module PhotoAlbum
    class Photo
       attr_reader :name, :datetime
       attr_accessor :title, :description
-      attr_accessor :rotate, :scale
 
-      def initialize( name, datetime = nil, title = nil, description = nil, rotate = nil, scale = nil )
+      def initialize( name, datetime = nil, title = nil, description = nil )
 	 @name = name
 	 @datetime = datetime
 	 @title, @description = title, description
-	 @rotate, @scale = rotate, scale
 	 unless @datetime
 	    # STDERR.puts @name
 	    @datetime = Time::local( *(@name.scan(/^(\d\d\d\d)(\d\d)(\d\d)t(\d\d)(\d\d)(\d\d)/)[0]) )
@@ -88,7 +86,7 @@ module PhotoAlbum
       end
 
       def to_photofile( conf )
-	 PhotoFile::new( @name, conf, @datetime, @title, @description, @rotate, @scale )
+	 PhotoFile::new( @name, conf, @datetime, @title, @description )
       end
    end
 
@@ -98,13 +96,13 @@ module PhotoAlbum
       FILENAME_REGEXP  = /\d{8}t\d{6}#{EXT}/
       FILENAME_PATTERN = "%Y%m%dt%H%M%S#{EXT}"
 
-      def initialize( name, conf, datetime = nil, title = nil, description = nil, rotate = nil, scale = nil )
-	 super( name, datetime, title, description, rotate, scale )
+      def initialize( name, conf, datetime = nil, title = nil, description = nil )
+	 super( name, datetime, title, description )
 	 @conf = conf
       end
 
       def to_photo
-	 Photo::new( @name, @datetime, @title, @description, @rotate, @scale)
+	 Photo::new( @name, @datetime, @title, @description )
       end
 
       def path
@@ -125,16 +123,16 @@ module PhotoAlbum
 	 Convert::new( @conf.convert ).convert( *(@conf.thumbnail_opts.dup << orig_path << thumbnail) )
       end
 
-      def do_convert
+      def do_convert( rotate, scale )
 	 # STDERR.puts "do_convert"
 	 convert = Convert.new( @conf.convert )
 	 File::cp( path, orig_path(true), true ) unless FileTest::exist?(orig_path(true))
-	 if @rotate then
-	    convert.convert( "-rotate", @rotate.to_s, path, tempname )
+	 if rotate and rotate != 0 then
+	    convert.convert( "-rotate", rotate.to_s, path, tempname )
 	    File::cp( tempname, path )
 	 end
-	 if @scale then
-	    convert.convert( "-scale", @scale.to_s + "%", path, tempname )
+	 if scale and scale != 0 then
+	    convert.convert( "-scale", scale.to_s + "%", path, tempname )
 	    File::cp( tempname, path )
 	 end
 	 make_thumbnail
@@ -890,8 +888,6 @@ module PhotoAlbum
 	 super
 	 File::move( @photo.orig_path, @photo.path )
 	 @photo.make_thumbnail
-	 @photo.rotate = nil
-	 @photo.scale = nil
       end
    end
 
@@ -933,21 +929,20 @@ module PhotoAlbum
       def initialize ( cgi, rhtml, conf )
 	 super
 
+	 rotate = scale = nil
 	 if @cgi.valid?( 'rotate' ) then
-	    unless @photo.rotate then
-	       @photo.rotate = 0
-	    end
-	    if @photo.rotate == 'left' then
-	       @photo.rotate += -90
+	    rotate = 0
+	    if @cgi.params['rotate'][0] == 'left' then
+	       rotate += -90
 	    else
-	       @photo.rotate += 90
+	       rotate += 90
 	    end
 	 end
 
-	 @photo.scale = @cgi['scale'][0].to_i if @cgi.valid?( 'scale' )
+	 scale = @cgi['scale'][0].to_i if @cgi.valid?( 'scale' )
 
 	 @photo = @photo.to_photofile( @conf )
-	 @photo.do_convert
+	 @photo.do_convert( rotate, scale )
 	 @photo.make_thumbnail
 
 	 save_photo_db
