@@ -11,7 +11,7 @@
 require 'p-album/wiki_parser'
 
 module PhotoAlbum
-   class WikiConverter
+   class WikiFormatter
       def initialize
          @parser = WikiParser::new( :wikiname => false )
       end

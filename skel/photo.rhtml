@@ -7,7 +7,7 @@
   <div class="photo"><img src="<%= @photo.path %>" alt="<%= @photo.title %>" title="<%= @photo.title %>" <%= html_imgsize(@photo.path) %>></div>
   <div class="datetime">»£±ÆÆü»þ: <%= @photo.datetime.strftime( '%Y-%m-%d %H:%M:%S' ) %></div>
   <% if @photo.description and not @photo.description.empty? then %>
-  <div class="description"><%= @wiki_converter.to_html4( @photo.description ) %></div>
+  <div class="description"><%= @wiki_formatter.to_html4( @photo.description ) %></div>
   <% end %>
   </div>
   </div>

@@ -792,8 +792,8 @@ module PhotoAlbum
 	    raise AlbumError, 'No photo found.'
 	 end
 
-         require 'p-album/wiki_converter'
-         @wiki_converter = WikiConverter::new
+         require 'p-album/wiki_formatter'
+         @wiki_formatter = WikiFormatter::new
       end
    end
 
