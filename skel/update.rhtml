@@ -4,11 +4,9 @@
 <% if @added.size > 0 then %>
 <div class="day">
 <h2>新規追加ファイル</h2>
-<ul>
 <% @added.sort.each do |photo| %>
   <a href="<%= @conf.update %>?photo=<%= photo.name %>"><img src="<%= photo.thumbnail %>" <%= html_imgsize(photo.thumbnail) %>></a>
 <% end %>
-</ul>
 </div>
 <hr class="sep">
 <% end %>
