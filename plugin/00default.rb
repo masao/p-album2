@@ -194,12 +194,36 @@ end
 # make anchor string
 #
 def anchor( s )
-   if /^[0-9]+$/ =~ s then
+   case s
+   when /^\d{6}$/
       "?date=#{s}"
-   elsif /^[0-9t]+$/ =~ s then
+   when /^\d{8}$/
+      "?date=#{s[0,6]}##{s}"
+   when /^\d{8}t\d{6}$/
       "?photo=#{s}"
    else
       ""
+   end
+end
+
+#
+# make anchor tag in my diary
+#
+def my( a, str, title = nil )
+   case a
+   when /^\d{8}t\d{6}|\d{6}$/
+      anc = a
+   when /^(\d{4})-(\d{2})-(\d{2})[t ](\d{2}):(\d{2}):(\d{2})$/i
+      # backward compat.
+      anc = "#$1#$2#$3t#$4#$5#$6"
+   when /^(\d{4})-(\d{2})-(\d{2})$/
+      # backward compat.
+      anc = "#$1#$2#$3"
+   end
+   if title then
+      %Q[<a href="#{@conf.index}#{anchor anc}" title="#{title}">#{str}</a>]
+   else
+      %Q[<a href="#{@conf.index}#{anchor anc}">#{str}</a>]
    end
 end
 

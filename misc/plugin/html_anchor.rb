@@ -24,7 +24,12 @@
 #
 
 def anchor( s )
-   if /^[0-9t]+$/ =~ s then
+   case s
+   when /^\d{6}$/
+      "#{s}.html"
+   when /^\d{8}$/
+      "#{s[0,6]}.html##{s}"
+   when /^\d{8}t\d{6}$/
       "#{s}.html"
    else
       ""

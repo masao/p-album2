@@ -62,7 +62,7 @@ end
 
 def kw( keyword, name = nil )
 	@kw_dic = kw_generate_dic unless @kw_dic
-	show_inter = @options['kw.show_inter'] == nil ? true : @options['kw.show_inter']
+	show_inter = @conf['kw.show_inter'] == nil ? true : @conf['kw.show_inter']
 
 	inter, key = keyword.split( /:/, 2 )
 	unless key then

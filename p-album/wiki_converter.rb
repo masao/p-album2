@@ -126,18 +126,16 @@ module PhotoAlbum
       private
       def keyword( s )
          r = ''
-         if /\|/ =~ s
+         if /^(\d{8}t\d{6}|\d{6}|\d{8}|\d{4}-\d{2}-\d{2}|\d{4}-\d{2}-\d{2}[t ]\d{2}:\d{2}:\d{2})$/i =~ s
+            r << %Q[%=my '#{s}', '[#{s}]' %]
+         elsif /\|/ =~ s
             k, u = s.split( /\|/, 2 )
             if /^(\d{4}|\d{6}|\d{8})[^\d]*?#?([pct]\d\d)?$/ =~ u then
                r << %Q[%=my '#{$1}#{$2}', '#{k}' %]
             elsif /:/ =~ u
                scheme, path = u.split( /:/, 2 )
                if /\A(?:http|https|ftp|mailto)\z/ =~ scheme
-                  if mobile
-                     r << %Q[A HREF="#{u}">#{k}</A]
-                  else
-                     r << %Q[a href="#{u}">#{k}</a]
-                  end
+                  r << %Q[a href="#{u}">#{k}</a]
                else
                   r << %Q[%=kw '#{u}', '#{k}'%]
                end
