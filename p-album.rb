@@ -980,6 +980,7 @@ module PhotoAlbum
                # STDERR.puts @cgi.params["file#{i}"][0].original_filename
                photo = PhotoFile::load_file( @cgi.params["file#{i}"][0].local_path, @conf )
                if photo then
+                  File::chmod( @conf.perm, photo.path, photo.thumbnail ) if @conf.perm
                   @added << photo
                   m = photo.datetime.strftime('%Y%m')
                   d = photo.datetime.strftime('%Y%m%d')
