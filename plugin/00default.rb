@@ -4,25 +4,25 @@
 def navi
    result = %Q[<div class="adminmenu">\n]
    result << %Q[<span class="adminmenu"><a href="#{@conf.index_page}">¥È¥Ã¥×</a></span>\n] unless @conf.index_page.empty?
-   result << %Q[<span class="adminmenu"><a href="#{@conf.index}?date=#{@prev_month}">&laquo;#{navi_prev_month}</a></span>\n] if @prev_month
-   result << %Q[<span class="adminmenu"><a href="#{@conf.index}?photo=#{@prev_photo}">&laquo;#{navi_prev_photo}</a></span>\n] if @prev_photo
+   result << %Q[<span class="adminmenu"><a href="#{@conf.index}#{anchor @prev_month}">&laquo;#{navi_prev_month}</a></span>\n] if @prev_month
+   result << %Q[<span class="adminmenu"><a href="#{@conf.index}#{anchor @prev_photo}">&laquo;#{navi_prev_photo}</a></span>\n] if @prev_photo
    result << %Q[<span class="adminmenu"><a href="#{@conf.index}">#{navi_latest}</a></span>\n] unless @mode == 'latest'
-   result << %Q[<span class="adminmenu"><a href="#{@conf.index}?date=#{@next_month}">#{navi_next_month}&raquo;</a></span>\n] if @next_month
-   result << %Q[<span class="adminmenu"><a href="#{@conf.index}?photo=#{@next_photo}">#{navi_next_photo}&raquo;</a></span>\n] if @next_photo
-   result << %Q[<span class="adminmenu"><a href="#{@conf.index}?photo=#{@photo.name}">#{navi_back}</a></span>\n] if @mode =~ /^photo(edit|convert|original|save)$/
-   result << %Q[<span class="adminmenu"><a href="#{@conf.update}?photo=#{@photo.name}">#{navi_edit}</a></span>\n] if @mode == 'photo'
+   result << %Q[<span class="adminmenu"><a href="#{@conf.index}#{anchor @next_month}">#{navi_next_month}&raquo;</a></span>\n] if @next_month
+   result << %Q[<span class="adminmenu"><a href="#{@conf.index}#{anchor @next_photo}">#{navi_next_photo}&raquo;</a></span>\n] if @next_photo
+   result << %Q[<span class="adminmenu"><a href="#{@conf.index}#{anchor @photo.name}">#{navi_back}</a></span>\n] if @mode =~ /^photo(edit|convert|original|save)$/
+   result << %Q[<span class="adminmenu"><a href="#{@conf.update}#{anchor @photo.name}">#{navi_edit}</a></span>\n] if @mode == 'photo'
    menu_proc.each {|i| result << %Q[<span class="adminmenu">#{i}</span>\n]}
    result << %Q[<span class="adminmenu"><a href="#{@conf.update}">#{navi_update}</a></span>\n] unless /^update|photo.*$/ =~ @mode
-   result << %Q[<span class="adminmenu"><a href="#{@conf.update}?conf=default">#{navi_preference}</a></span>\n] unless /^latest|month|conf|photo$/ =~ @mode
+   result << %Q[<span class="adminmenu"><a href="#{@conf.update}?conf=default">#{navi_preference}</a></span>\n] unless /^latest|month|conf|photo|search$/ =~ @mode
    result << %Q[</div>]
 end
 
 def mobile_navi
    calc_links
    result = []
-   result << %Q[<a href="#{@conf.index}?date=#{@prev_month}" accesskey="1">[1]#{mobile_navi_prev_month}</a>] if @mode == 'month'
+   result << %Q[<a href="#{@conf.index}#{anchor @prev_month}" accesskey="1">[1]#{mobile_navi_prev_month}</a>] if @mode == 'month'
    result << %Q[<a href="#{@conf.index}" accesskey="2">[2]#{mobile_navi_latest}</a>]
-   result << %Q[<a href="#{@conf.index}?date=#{@next_month}" accesskey="3">[3]#{mobile_navi_next_month}</a>] if @mode == 'month'
+   result << %Q[<a href="#{@conf.index}#{anchor @next_month}" accesskey="3">[3]#{mobile_navi_next_month}</a>] if @mode == 'month'
    result << %Q[<a href="#{@conf.update}?conf=default" accesskey="0">[0]#{mobile_navi_preference}</a>]
    result.join('|')
 end
@@ -57,7 +57,7 @@ def calendar
       result << %Q[<div class="year">#{year} |]
       "01".upto( "12" ) do |m|
 	 if @years[year].include?( "#{year}#{m}" ) then
-	    result << %Q[<a href="#{@conf.index}?date=#{year}#{m}">#{m}</a>|]
+	    result << %Q[<a href="#{@conf.index}#{anchor "#{year}#{m}"}">#{m}</a>|]
 	 else
 	    result << %Q[#{m}|]
 	 end
@@ -143,17 +143,17 @@ def index_page_tag
    end
 
    if @prev_month then
-      result << %Q[<link rel="prev" title="#{navi_prev_month}" href="#{@conf.index}?date=#{@prev_month}">\n\t]
+      result << %Q[<link rel="prev" title="#{navi_prev_month}" href="#{@conf.index}#{anchor @prev_month}">\n\t]
    end
    if @next_month then
-      result << %Q[<link rel="next" title="#{navi_next_month}" href="#{@conf.index}?date=#{@next_month}">\n\t]
+      result << %Q[<link rel="next" title="#{navi_next_month}" href="#{@conf.index}#{anchor @next_month}">\n\t]
    end
 
    if @prev_photo then
-      result << %Q[<link rel="prev" title="#{navi_prev_photo}" href="#{@conf.index}?photo=#{@prev_photo}">\n\t]
+      result << %Q[<link rel="prev" title="#{navi_prev_photo}" href="#{@conf.index}#{anchor @prev_photo}">\n\t]
    end
    if @next_photo then
-      result << %Q[<link rel="next" title="#{navi_next_photo}" href="#{@conf.index}?photo=#{@next_photo}">\n\t]
+      result << %Q[<link rel="next" title="#{navi_next_photo}" href="#{@conf.index}#{anchor @next_photo}">\n\t]
    end
 
    result << %Q[<link rel="last" title="#{navi_latest}" href="#{@conf.index}">\n\t]
@@ -176,6 +176,19 @@ def css_tag
    <link rel="stylesheet" href="#{theme_url}/base.css" type="text/css" media="all">
    <link rel="stylesheet" href="#{css}" title="#{title}" type="text/css" media="all">
    CSS
+end
+
+#
+# make anchor string
+#
+def anchor( s )
+   if /^[0-9]+$/ =~ s then
+      "?date=#{s}"
+   elsif /^[0-9t]+$/ =~ s then
+      "?photo=#{s}"
+   else
+      ""
+   end
 end
 
 #

@@ -7,12 +7,12 @@
   <% result.each do |photo| %>
   <div class="day">
   <% unless photo.title.empty? then %>
-  <h2><a href="<%= @conf.index %>?photo=<%= photo.name %>"><%= photo.title %></a></span></h2>
+  <h2><a href="<%= @conf.index %><%%= anchor "<%= photo.name %>" %>"><%= photo.title %></a></span></h2>
   <% end %>
   <div class="body">
   <div class="thumbnail">
   <% photo = photo.to_photofile( @conf ) %>
-  <a href="<%= @conf.index %>?photo=<%= photo.name %>"><img src="<%= photo.thumbnail %>" alt="<%= photo.title %>" title="<%= photo.title %>" <%= html_imgsize(photo.thumbnail) %>></a>
+  <a href="<%= @conf.index %><%%= anchor "<%= photo.name %>" %>"><img src="<%= photo.thumbnail %>" alt="<%= photo.title %>" title="<%= photo.title %>" <%= html_imgsize(photo.thumbnail) %>></a>
   </div>
   <div class="datetime">»£±ÆÆü»þ: <%= photo.datetime.strftime( '%Y-%m-%d %H:%M:%S' ) %></div>
   <div class="description"><%= photo.description ? @conf.shorten( photo.description.strip_tag ) : "" %></div>
