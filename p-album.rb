@@ -720,10 +720,8 @@ module PhotoAlbum
 	 @years = {}
 	 month_list.sort.each do |m|
 	    year = m[0, 4]
-	    if photo_list( m ).size > 0 then
-	       @years[year] = [] unless @years[year]
-	       @years[year] << m
-	    end
+            @years[year] ||= []
+            @years[year] << m
 	 end
       end
    end
