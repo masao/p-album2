@@ -25,7 +25,7 @@ include PhotoAlbum
 
 if ARGV[0] and File::basename( ARGV[0] ) == "metadata.yaml"
    conf = Config::new
-   photo_list = []
+   month_list = {}
    yaml = ARGV[0]
    orig_dir = File::dirname( yaml )
    hash = YAML::load( open(yaml) )
@@ -55,18 +55,18 @@ if ARGV[0] and File::basename( ARGV[0] ) == "metadata.yaml"
 	       true )
 
       photo = Photo::new( name, datetime, title, description )
-      photo_list << photo
+      m = photo.datetime.strftime('%Y%m')
+      d = photo.datetime.strftime('%Y%m%d')
+      month_list[m] = Month::new( m ) unless month_list.key?( m )
+      month_list[m] << Day::new( d ) unless month_list.include?( d )
+      month_list[m][d] << photo
       p = photo.to_photofile( conf )
       File::chmod( conf.perm, p.path, p.orig_path, p.thumbnail ) if conf.perm
    end
 
-   photo_list.each do |photo|
-      m = photo.datetime.strftime('%Y%m')
-      d = photo.datetime.strftime('%Y%m%d')
+   month_list.each do |m, month|
       PStore::new( "#{conf.data_path}#{m}.db" ).transaction do |db|
-	 db['p-album'] = Month::new( m ) unless db.root?( 'p-album' )
-	 db['p-album'][d] = Day::new( d ) unless db['p-album'][d]
-	 db['p-album'][d] << photo
+	 db['p-album'] = month
       end
       File::chmod( conf.perm, "#{conf.data_path}#{m}.db" ) if conf.perm
    end
