@@ -4,10 +4,10 @@
 def navi
    result = %Q[<div class="adminmenu">\n]
    result << %Q[<span class="adminmenu"><a href="#{@conf.index_page}">¥È¥Ã¥×</a></span>\n] unless @conf.index_page.empty?
-   result << %Q[<span class="adminmenu"><a href="#{@conf.index}?date=#{@prev_month}">&laquo;#{navi_prev_month}</a></span>\n] if @mode == 'month'
+   result << %Q[<span class="adminmenu"><a href="#{@conf.index}?date=#{@prev_month}">&laquo;#{navi_prev_month}</a></span>\n] if @prev_month
    result << %Q[<span class="adminmenu"><a href="#{@conf.index}?photo=#{@prev_photo}">&laquo;#{navi_prev_photo}</a></span>\n] if @prev_photo
    result << %Q[<span class="adminmenu"><a href="#{@conf.index}">#{navi_latest}</a></span>\n] unless @mode == 'latest'
-   result << %Q[<span class="adminmenu"><a href="#{@conf.index}?date=#{@next_month}">#{navi_next_month}&raquo;</a></span>\n] if @mode == 'month'
+   result << %Q[<span class="adminmenu"><a href="#{@conf.index}?date=#{@next_month}">#{navi_next_month}&raquo;</a></span>\n] if @next_month
    result << %Q[<span class="adminmenu"><a href="#{@conf.index}?photo=#{@next_photo}">#{navi_next_photo}&raquo;</a></span>\n] if @next_photo
    result << %Q[<span class="adminmenu"><a href="#{@conf.index}?photo=#{@photo.name}">#{navi_back}</a></span>\n] if @mode =~ /^photo(edit|convert|original|save)$/
    result << %Q[<span class="adminmenu"><a href="#{@conf.update}?photo=#{@photo.name}">#{navi_edit}</a></span>\n] if @mode == 'photo'
@@ -70,17 +70,15 @@ add_header_proc do
 end
 
 def calc_links
-   if mode == 'month' then
-      y, m = @date.month[0, 4], @date.month[4, 2]
-      if m == "01" then
-	 @prev_month = "#{ sprintf('%04d', y.to_i-1) }12"
-      else
-	 @prev_month = "#{y}#{ sprintf('%02d', m.to_i-1) }"
+   if @mode == 'month' then
+      m = @date[0, 6]
+      month_list = @years.keys.sort.collect{|y| @years[y]}.flatten
+      idx = month_list.index( m )
+      unless idx == 0 then
+	 @prev_month = month_list[ idx - 1 ]
       end
-      if m == "12" then
-	 @next_month = "#{y.succ}01"
-      else
-	 @next_month = "#{y}#{m.succ}"
+      unless idx == @all_photos.size - 1 then
+	 @next_month = month_list[ idx + 1 ]
       end
    end
 
