@@ -34,6 +34,7 @@ begin
    print cgi.header( head )
    print body if /HEAD/i !~ cgi.request_method
 rescue
+   puts "Status: 500 Internal Server Error\r\n"
    puts "Content-Type: text/plain\r\n\r\n"
    puts "#$! (#{$!.class})"
    puts ""
