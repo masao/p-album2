@@ -134,7 +134,7 @@ module PhotoAlbum
 	    File::cp( tempname, path )
 	 end
 	 if @scale then
-	    convert.convert( "-scale", @scale.to_s, path, tempname )
+	    convert.convert( "-scale", @scale.to_s + "%", path, tempname )
 	    File::cp( tempname, path )
 	 end
 	 make_thumbnail
@@ -856,7 +856,24 @@ module PhotoAlbum
       end
    end
 
-   class AlbumPhotoEdit < AlbumPhoto; end
+   class AlbumPhotoEdit < AlbumPhoto
+      def save_photo_db
+	 if @photo then
+	    m = @photo.datetime.strftime('%Y%m')
+	    d = @photo.datetime.strftime('%Y%m%d')
+	    PStore::new( "#{@conf.data_path}#{m}.db" ).transaction do |db|
+	       newday = Day::new( d )
+	       db['p-album'][d].each_photo do |photo|
+		  if photo.name == @photo.name then
+		     photo = @photo.to_photo
+		  end
+		  newday << photo
+	       end
+	       db['p-album'][d] = newday
+	    end
+	 end
+      end
+   end
 
    class AlbumPhotoSave < AlbumPhotoEdit
       def initialize ( cgi, rhtml, conf )
@@ -864,19 +881,7 @@ module PhotoAlbum
 
 	 @photo.title = @cgi['title'][0].to_euc
 	 @photo.description = @cgi['description'][0].to_euc
-
-	 m = @cgi['photo'][0][0, 6]
-	 d = @cgi['photo'][0][0, 8]
-	 PStore::new( "#{@conf.data_path}#{m}.db" ).transaction do |db|
-	    newday = Day::new( d )
-	    db['p-album'][d].each_photo do |photo|
-	       if photo.name == @cgi['photo'][0] then
-		  photo = @photo.to_photo
-	       end
-	       newday << photo
-	    end
-	    db['p-album'][d] = newday
-	 end
+	 save_photo_db
       end
    end
 
@@ -933,9 +938,9 @@ module PhotoAlbum
 	       @photo.rotate = 0
 	    end
 	    if @photo.rotate == 'left' then
-	       @photo.rotate += 90
-	    else
 	       @photo.rotate += -90
+	    else
+	       @photo.rotate += 90
 	    end
 	 end
 
@@ -945,18 +950,7 @@ module PhotoAlbum
 	 @photo.do_convert
 	 @photo.make_thumbnail
 
-	 m = @cgi['photo'][0][0, 6]
-	 d = @cgi['photo'][0][0, 8]
-	 PStore::new( "#{@conf.data_path}#{m}.db" ).transaction do |db|
-	    newday = Day::new( d )
-	    db['p-album'][d].each_photo do |photo|
-	       if photo.name == @cgi['photo'][0] then
-		  photo = @photo.to_photo
-	       end
-	       newday << photo
-	    end
-	    db['p-album'][d] = newday
-	 end
+	 save_photo_db
       end
    end
 end
