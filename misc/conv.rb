@@ -63,8 +63,9 @@ if ARGV[0] and File::basename( ARGV[0] ) == "metadata.yaml"
 	       true )
 
       photo = Photo::new( name, datetime, title, description, rotate, scale )
-      File::chmod( conf.perm, photo.path, photo.orig_path, photo.thumbnail ) if conf.perm
       photo_list << photo
+      p = photo.to_photofile( conf )
+      File::chmod( conf.perm, p.path, p.orig_path, p.thumbnail ) if conf.perm
    end
 
    photo_list.each do |photo|
