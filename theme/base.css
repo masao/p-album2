@@ -16,7 +16,13 @@ h2.photo-title {
 }
 
 div.photo {
+  margin: 0.5em;
   text-align: center;
+}
+
+div.form div.photo {
+  float: left;
+  font-size: smaller;
 }
 
 p.datetime {

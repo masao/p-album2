@@ -40,6 +40,7 @@ module PhotoAlbum
 
 		attr_reader :path, :datetime
 		attr_accessor :title, :description
+		attr_accessor :convert, :rotate, :scale
 
 		def initialize( file )
 			STDERR.puts self.class
@@ -109,9 +110,24 @@ module PhotoAlbum
 			system "#{CONVERT} #{THUMBNAIL_OPT} #{orig_path} #{thumbnail}"
 		end
 
-		def convert ( opt = "" )
+		def do_convert
 			File::copy( path, orig_path( true ) ) unless FileTest::exist? orig_path
-			system "#{CONVERT} #{opt} #{orig_path} #{path}"
+			tmp = "/tmp/#{basename}.jpg"
+			tmp2 = "/tmp/#{basename}.new"
+			File::copy( orig_path, tmp )
+			if @convert then
+				system "#{CONVERT} #{@convert} #{tmp} #{tmp2}"
+				File::move( tmp2, tmp )
+			end
+			if @rotate then
+				system "#{CONVERT} -rotate #{@rotate} #{tmp} #{tmp2}"
+				File::move( tmp2, tmp )
+			end
+			if @scale then
+				system "#{CONVERT} -rotate '#{@scale}%' #{tmp} #{tmp2}"
+				File::move( tmp2, tmp )
+			end
+			File::copy( tmp, path )
 			make_thumbnail
 		end
 	end
@@ -358,7 +374,7 @@ module PhotoAlbum
 			result << %Q[<span class="adminmenu"><a href="#{@index}?month=#{@next_month}">次月&raquo;</a></span>\n] if @next_month
 			result << %Q[<span class="adminmenu"><a href="#{@conf.update}">新規追加</a></span>\n] if mode != 'edit'
 			result << %Q[<span class="adminmenu"><a href="#{@conf.update}?photo=#{@photo.basename}">編集</a></span>\n] if @photo
-			result << %Q[<span class="adminmenu"><a href="#{@conf.update}?conf=1">設定</a></span>\n]
+			result << %Q[<span class="adminmenu"><a href="#{@conf.update}?conf=1">設定</a></span>\n] unless mode =~ /^latest|month$/
 			result << %Q[</div>]
 		end
 
@@ -528,6 +544,54 @@ CSS
 
 			@photo.title = @cgi['title'][0].to_euc
 			@photo.description = @cgi['description'][0].to_euc
+
+			m = @cgi['photo'][0][0, 6]
+			d = @cgi['photo'][0][0, 8]
+			db = PStore::new( "#{@conf.data_path}#{m}.db" )
+			db.transaction do
+				newday = Day::new( d )
+				db['p-album'][d].each_photo do |photo|
+					if photo.basename == @cgi['photo'][0] then
+						photo = @photo
+					end
+					newday << photo
+				end
+				db['p-album'][d] = newday
+			end
+		end
+	end
+
+	class AlbumOriginalPhoto < AlbumEdit
+		def initialize ( cgi, rhtml, conf )
+			super
+			File::move( @photo.orig_path, @photo.path )
+			@photo.make_thumbnail
+			@photo.rotate = nil
+			@photo.scale = nil
+			@photo.convert = nil
+		end
+	end
+
+	class AlbumConvertPhoto < AlbumEdit
+		def initialize ( cgi, rhtml, conf )
+			super
+
+			if @cgi.valid?( 'rotate' ) then
+				unless @photo.rotate then
+					@photo.rotate = 0
+				end
+				if @photo.rotate == 'left' then
+					@photo.rotate += 90
+				else
+					@photo.rotate += -90
+				end
+			end
+
+			@photo.convert = @cgi['convert'][0] if @cgi.valid?( 'convert' )
+			@photo.scale = @cgi['scale'][0].to_i if @cgi.valid?( 'scale' )
+
+			@photo.do_convert
+			@photo.make_thumbnail
 
 			m = @cgi['photo'][0][0, 6]
 			d = @cgi['photo'][0][0, 8]

@@ -18,6 +18,10 @@ begin
 		album = PhotoAlbum::AlbumUpload::new( cgi, "upload.rhtml", conf )
 	elsif cgi.valid?( 'savephoto' )
 		album = PhotoAlbum::AlbumSavePhoto::new( cgi, "edit.rhtml", conf )
+	elsif cgi.valid?( 'convertphoto' )
+		album = PhotoAlbum::AlbumConvertPhoto::new( cgi, "edit.rhtml", conf )
+	elsif cgi.valid?( 'original' )
+		album = PhotoAlbum::AlbumOriginalPhoto::new( cgi, "edit.rhtml", conf )
 	elsif cgi.valid?( 'photo' )
 		album = PhotoAlbum::AlbumEdit::new( cgi, "edit.rhtml", conf )
 	else
