@@ -9,7 +9,7 @@ def title_tag
    r = "<title>#{CGI::escapeHTML( @conf.html_title )}"
    case @mode
    when /^photo/
-      r << " - #{@photo.title}" if @photo
+      r = "<title>#{@photo.title}" if @photo and @photo.title and not @photo.title.empty?
    when 'month'
       r << " (#{@month.month[0,4]}-#{@month.month[4,2]})" if @date
    when 'edit'
