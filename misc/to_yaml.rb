@@ -9,7 +9,7 @@ require 'getopts'
 
 getopts('q')
 
-Dir::glob("*.db") do |f|
+Dir::glob("*.db").sort.each do |f|
    result = {}
 
    month = Marshal::load(open(f))['p-album']
@@ -23,6 +23,10 @@ Dir::glob("*.db") do |f|
             "title" => p.title,
             "description" => p.description,
          }
+         if p.datetime.strftime('%Y%m%dt%H%M%S') != p.name
+            STDERR.puts "name and datetime are inconsistency:"
+            STDERR.puts "\tname:#{p.name} != datetime:#{p.datetime.strftime('%Y%m%dt%H%M%S')}"
+         end
       end
    end
 
