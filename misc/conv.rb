@@ -4,6 +4,10 @@
 # p-album から p-album2 への移行用スクリプト
 #
 # 使い方:
+#
+# このスクリプトを p-album.rb と同一のディレクトリに置いてから、以下の
+# ように、以前使用していた metadata.yaml をコマンドラインから指定します。
+# 
 #  conv.rb ~/photo/metadata.yaml
 
 require 'ftools'
@@ -48,7 +52,7 @@ if ARGV[0] and File::basename( ARGV[0] ) == "metadata.yaml"
 
       if File::exist? File::join( orig_dir, k + ".orig" )
 	 File::cp( File::join(orig_dir, k + ".orig"),
-		  conf.images_dir + fname,
+		  conf.images_dir + fname + ".orig",
 		  true )
       end
       File::cp( File::join(orig_dir, k),
@@ -66,12 +70,12 @@ if ARGV[0] and File::basename( ARGV[0] ) == "metadata.yaml"
    photo_list.each do |photo|
       m = photo.datetime.strftime('%Y%m')
       d = photo.datetime.strftime('%Y%m%d')
-      db = PStore::new( "#{conf.data_path}#{m}.db" )
-      db.transaction do
+      PStore::new( "#{conf.data_path}#{m}.db" ).transaction do |db|
 	 db['p-album'] = Month::new( m ) unless db.root?( 'p-album' )
 	 db['p-album'][d] = Day::new( d ) unless db['p-album'][d]
 	 db['p-album'][d] << photo
       end
+      File::chmod( conf.perm, "#{conf.data_path}#{m}.db" ) if conf.perm
    end
 else
    puts "Usage: #{$0} ~/photo/metadata.yaml"
