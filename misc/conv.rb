@@ -42,17 +42,21 @@ if ARGV[0] and File::basename( ARGV[0] ) == "metadata.yaml"
 	 STDERR.puts "Unknown metadata entries for #{name}: #{vals.inspect} (ignored)"
       end
 
-      if File::exist? File::join( orig_dir, k + ".orig" )
-	 File::cp( File::join(orig_dir, k + ".orig"),
-		  conf.images_dir + fname + ".orig",
-		  true )
+      begin
+         if File::exist? File::join( orig_dir, k + ".orig" )
+            File::cp( File::join(orig_dir, k + ".orig"),
+                      conf.images_dir + fname + ".orig",
+                      true )
+         end
+         File::cp( File::join(orig_dir, k),
+                   conf.images_dir + fname,
+                   true )
+         File::cp( File::join(orig_dir, "thumbs", k),
+                   conf.thumbs_dir + fname,
+                   true )
+      rescue Errno::ENOENT
+         puts "skip: copy failed: #{$!}"
       end
-      File::cp( File::join(orig_dir, k),
-	       conf.images_dir + fname,
-	       true )
-      File::cp( File::join(orig_dir, "thumbs", k),
-	       conf.thumbs_dir + fname,
-	       true )
 
       photo = Photo::new( name, datetime, title, description )
       m = photo.datetime.strftime('%Y%m')
@@ -61,7 +65,11 @@ if ARGV[0] and File::basename( ARGV[0] ) == "metadata.yaml"
       month_list[m] << Day::new( d ) unless month_list[m].include?( d )
       month_list[m][d] << photo
       p = photo.to_photofile( conf )
-      File::chmod( conf.perm, p.path, p.orig_path, p.thumbnail ) if conf.perm
+      begin
+         File::chmod( conf.perm, p.path, p.orig_path, p.thumbnail ) if conf.perm
+      rescue Errno::ENOENT
+         puts "skip: chmod fail: #{$!}"
+      end
    end
 
    month_list.each do |m, month|
