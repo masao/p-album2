@@ -1,7 +1,10 @@
 #!/usr/bin/env ruby
 # $Id$
 
-# 画像ファイルの取り込みを行う
+# 画像ファイルの取り込み
+
+# 使い方:
+#   p-import ~/photo/*.JPG
 
 if FileTest::symlink?( __FILE__ ) then
    org_path = File::dirname( File::readlink( __FILE__ ) )
