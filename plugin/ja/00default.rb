@@ -18,6 +18,8 @@ def title_tag
       r << ' (ÀßÄê)'
    when 'saveconf'
       r << ' (ÀßÄê´°Î»)'
+   when 'search'
+      r << ': ' << CGI::escapeHTML( @cgi.params['q'][0] )
    end
    r << '</title>'
 end
