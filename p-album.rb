@@ -116,11 +116,9 @@ module PhotoAlbum
       end
 
       def orig_path ( force = false )
-	 if force or FileTest::exist?( "#{path}.orig" ) then
-	    path + ".orig"
-	 else
-	    path
-	 end
+	 r = path
+	 r += ".orig" if force or FileTest::exist?( path + ".orig" )
+	 r
       end
 
       def make_thumbnail
@@ -130,7 +128,7 @@ module PhotoAlbum
       def do_convert
 	 # STDERR.puts "do_convert"
 	 convert = Convert.new( @conf.convert )
-	 File::cp( path, orig_path( true ) ) unless FileTest::exist? orig_path
+	 File::cp( path, orig_path(true), true ) unless FileTest::exist?(orig_path(true))
 	 if @rotate then
 	    convert.convert( "-rotate", @rotate.to_s, path, tempname )
 	    File::cp( tempname, path )
@@ -188,19 +186,15 @@ module PhotoAlbum
       end
    end
 
-   class Day
+   class Day < Array
       attr_reader :day
       def initialize ( day )
+	 super()
 	 @day = day
-	 @photos = []
-      end
-
-      def << ( photo )
-	 @photos << photo
       end
 
       def each_photo
-	 @photos.sort.each do |i|
+	 self.sort.each do |i|
 	    yield i
 	 end
       end
@@ -231,6 +225,10 @@ module PhotoAlbum
 
       def []= ( day, val )
 	 @days[day] = val
+      end
+
+      def delete( day )
+	 @days.delete( day )
       end
 
       def day_list
@@ -895,19 +893,22 @@ module PhotoAlbum
    class AlbumPhotoRemove < AlbumPhotoEdit
       def initialize ( cgi, rhtml, conf )
 	 super
-	 if @cgi.valid?( 'confirm' ) then
+
+	 if @cgi.valid?( 'confirm' ) and @cgi.valid?( 'photo' ) then
 	    m = @cgi['photo'][0][0, 6]
 	    d = @cgi['photo'][0][0, 8]
 	    PStore::new( "#{@conf.data_path}#{m}.db" ).transaction do |db|
 	       newday = Day::new( d )
-	       newday_size = 0
 	       db['p-album'][d].each_photo do |photo|
 		  unless photo.name == @cgi['photo'][0] then
 		     newday << photo
-		     newday_size += 1
 		  end
 	       end
-	       db['p-album'][d] = newday if newday_size > 0
+	       if newday.size > 0
+		  db['p-album'][d] = newday
+	       else
+		  db['p-album'].delete( d )
+	       end
 	    end
 
 	    begin
@@ -917,7 +918,7 @@ module PhotoAlbum
 	    rescue Errno::ENOENT
 	    end
 
-	    print @cgi.header( { 'Location' => @conf.index } )
+	    print @cgi.header( { 'Location' => @conf.index + "?date=#{m}" } )
 	    exit
 	 end
       end
