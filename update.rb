@@ -12,23 +12,21 @@ begin
 
    conf = PhotoAlbum::Config::new
    cgi = CGI::new
-   if cgi.valid?( 'import' )
-      album = PhotoAlbum::AlbumImport::new( cgi, "update.rhtml", conf )
-   elsif cgi.valid?( 'upload' )
-      album = PhotoAlbum::AlbumUpload::new( cgi, "upload.rhtml", conf )
+   if cgi.valid?( 'remove' )
+      album = PhotoAlbum::AlbumRemovePhoto::new( cgi, "remove.rhtml", conf )
    elsif cgi.valid?( 'savephoto' )
       album = PhotoAlbum::AlbumSavePhoto::new( cgi, "edit.rhtml", conf )
    elsif cgi.valid?( 'convertphoto' )
       album = PhotoAlbum::AlbumConvertPhoto::new( cgi, "edit.rhtml", conf )
    elsif cgi.valid?( 'original' )
       album = PhotoAlbum::AlbumOriginalPhoto::new( cgi, "edit.rhtml", conf )
-   elsif cgi.valid?( 'remove' )
-      album = PhotoAlbum::AlbumRemovePhoto::new( cgi, "remove.rhtml", conf )
    elsif cgi.valid?( 'photo' )
       album = PhotoAlbum::AlbumEdit::new( cgi, "edit.rhtml", conf )
    else
-      album = PhotoAlbum::AlbumForm::new( cgi, "update.rhtml", conf )
+      album = PhotoAlbum::AlbumUpdate::new( cgi, "update.rhtml", conf )
    end
+   
+   STDERR.puts album.mode
 
    head = {
       'type' => 'text/html',

@@ -51,7 +51,7 @@ module PhotoAlbum
 	 @name = name
 	 @datetime = datetime
 	 @title, @description = title, description
-	 @convert = @rotate = @scale = nil
+	 @convert, @rotate, @scale = convert, rotate, scale
 	 unless @datetime
 	    # STDERR.puts @name
 	    @datetime = Time::local( *(@name.scan(/^(\d\d\d\d)(\d\d)(\d\d)t(\d\d)(\d\d)(\d\d)/)[0]) )
@@ -61,7 +61,7 @@ module PhotoAlbum
       def <=> ( other )
 	 self.datetime <=> other.datetime
       end
-      
+
       def to_photofile( conf )
 	 PhotoFile::new( @name, conf, @datetime, @title, @decsription, @convert, @rotate, @scale )
       end
@@ -74,6 +74,7 @@ module PhotoAlbum
       FILENAME_PATTERN = "%Y%m%dt%H%M%S#{EXT}"
 
       def initialize( name, conf, datetime = nil, title = nil, description = nil, convert = nil, rotate = nil, scale = nil )
+	 STDERR.puts scale
 	 super( name, datetime, title, description, convert, rotate, scale )
 	 @conf = conf
       end
@@ -103,21 +104,26 @@ module PhotoAlbum
       end
 
       def do_convert
+	 # STDERR.puts "do_convert"
 	 convert = Convert.new( @conf.convert )
 	 File::copy( path, orig_path( true ) ) unless FileTest::exist? orig_path
-	 tmp = Tempfile::new( name )
 	 if @convert then
 	    convert.convert( @convert, orig_path, path )
 	 end
-	 if rotate then
-	    convert.convert( "-rotate", @rotate.to_s, path, tmp.path + EXT )
-	    File::cp( tmp.path + EXT, path )
+	 if @rotate then
+	    convert.convert( "-rotate", @rotate.to_s, path, tempname )
+	    File::cp( tempname, path )
 	 end
 	 if @scale then
-	    convert.convert( "-scale", @scale.to_s, path, tmp.path +EXT )
-	    File::cp( tmp.path + EXT, path )
+	    convert.convert( "-scale", @scale.to_s, path, tempname )
+	    File::cp( tempname, path )
 	 end
 	 make_thumbnail
+      end
+
+      def tempname( ext = EXT )
+	 tmpdir = ENV['TMPDIR'] || "/tmp/"
+	 tmpdir << @name << $$.to_s << ext
       end
 
       def self::load_file( file, conf )
@@ -241,6 +247,7 @@ module PhotoAlbum
 	 eval( File::open( "p-album.conf" ){|f| f.read }.untaint )
 	 @images_dir = './images/' unless @images_dir
 	 @thumbs_dir = './thumbs/' unless @thumbs_dir
+	 @perm = nil unless @perm
 	 @index = './' unless @index
 	 @update = './update.rb' unless @update
 	 @html_title = '' unless @html_title
@@ -401,7 +408,7 @@ module PhotoAlbum
 	 result << %Q[<span class="adminmenu"><a href="#{@conf.index}">最新</a></span>\n] unless mode == 'latest'
 	 result << %Q[<span class="adminmenu"><a href="#{@index}?photo=#{@next_photo}">次の写真&raquo;</a></span>\n] if @next_photo
 	 result << %Q[<span class="adminmenu"><a href="#{@index}?month=#{@next_month}">次月&raquo;</a></span>\n] if @next_month
-	 result << %Q[<span class="adminmenu"><a href="#{@conf.update}">新規追加</a></span>\n] if mode != 'edit'
+	 result << %Q[<span class="adminmenu"><a href="#{@conf.update}">更新</a></span>\n] if mode != 'edit'
 	 result << %Q[<span class="adminmenu"><a href="#{@conf.update}?photo=#{@photo.name}">編集</a></span>\n] if @photo
 	 result << %Q[<span class="adminmenu"><a href="#{@conf.update}?conf=1">設定</a></span>\n] unless mode =~ /^latest|month$/
 	 result << %Q[</div>]
@@ -506,7 +513,7 @@ CSS
       end
    end
 
-   class AlbumForm < AlbumBase
+   class AlbumUpdate < AlbumBase
       def initialize ( cgi, rhtml, conf )
 	 super
 
@@ -521,8 +528,8 @@ CSS
 	    photolist += photo_list(m)
 	 end
 
-	 puts "filelist: #{filelist.inspect}"
-	 puts "photolist: #{photolist.inspect}"
+	 # puts "filelist: #{filelist.inspect}"
+	 # puts "photolist: #{photolist.inspect}"
 	 @added = []
 	 (filelist - photolist).each do |name|
 	    photo = Photo::new( name )
@@ -624,6 +631,8 @@ CSS
 	 @photo.convert = @cgi['convert'][0] if @cgi.valid?( 'convert' )
 	 @photo.scale = @cgi['scale'][0].to_i if @cgi.valid?( 'scale' )
 
+	 @photo = @photo.to_photofile( @conf )
+	 STDERR.puts @photo.inspect
 	 @photo.do_convert
 	 @photo.make_thumbnail
 

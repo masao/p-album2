@@ -17,7 +17,7 @@
   <%= image_size.get_width %> x <%= image_size.get_height %>
   </div>
   </div>
-  <form action="<%= @conf.update %>" method="GET">
+  <form action="<%= @conf.update %>" method="POST">
   <input type="hidden" name="photo" value="<%= @photo.name %>">
   <p>╡ХаЭ╡Се╬:
      <select name="rotate" class="field">

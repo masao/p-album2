@@ -19,6 +19,7 @@ if $0 == __FILE__
    ARGV.each do |file|
       photo = PhotoAlbum::PhotoFile::load_file( file, conf )
       if photo
+	 File::chmod( conf.perm, photo.path, photo.thumbnail ) if conf.perm
 	 puts "#{file} -> #{photo.path}"
       end
    end

@@ -6,7 +6,7 @@
 <h2>新規追加ファイル</h2>
 <ul>
 <% @added.sort.each do |photo| %>
-  <a href="<%= @conf.update %>?photo=<%= photo.name %>;edit=1"><img src="<%= photo.thumbnail %>" <%= html_imgsize(photo.thumbnail) %>></a>
+  <a href="<%= @conf.update %>?photo=<%= photo.name %>"><img src="<%= photo.thumbnail %>" <%= html_imgsize(photo.thumbnail) %>></a>
 <% end %>
 </ul>
 </div>
