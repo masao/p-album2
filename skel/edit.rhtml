@@ -1,6 +1,7 @@
   <%= @conf.header %>
   <hr class="sep">
 
+  <div class="update day">
   <div class="form">
   <div class="photo"><img src="<%= @photo.thumbnail %>" alt="<%= @photo.title %>" title="<%= @photo.title %>" <%= html_imgsize(@photo.thumbnail) %>
   <div class="image_size">
@@ -28,6 +29,7 @@
   </form>
   </div>
 
+  <hr class="sep">
   <div class="form">
   <form action="<%= @conf.update %>" method="POST">
   <input type="hidden" name="photo" value="<%= @photo.name %>">
@@ -53,6 +55,7 @@
   </form>
   </div>
   <% end %>
+  </div>
 
   <hr class="sep">
   <%= @conf.footer %>
