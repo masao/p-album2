@@ -70,13 +70,13 @@ module PhotoAlbum
    class Photo
       attr_reader :name, :datetime
       attr_accessor :title, :description
-      attr_accessor :convert, :rotate, :scale
+      attr_accessor :rotate, :scale
 
-      def initialize( name, datetime = nil, title = nil, description = nil, convert = nil, rotate = nil, scale = nil )
+      def initialize( name, datetime = nil, title = nil, description = nil, rotate = nil, scale = nil )
 	 @name = name
 	 @datetime = datetime
 	 @title, @description = title, description
-	 @convert, @rotate, @scale = convert, rotate, scale
+	 @rotate, @scale = rotate, scale
 	 unless @datetime
 	    # STDERR.puts @name
 	    @datetime = Time::local( *(@name.scan(/^(\d\d\d\d)(\d\d)(\d\d)t(\d\d)(\d\d)(\d\d)/)[0]) )
@@ -88,7 +88,7 @@ module PhotoAlbum
       end
 
       def to_photofile( conf )
-	 PhotoFile::new( @name, conf, @datetime, @title, @description, @convert, @rotate, @scale )
+	 PhotoFile::new( @name, conf, @datetime, @title, @description, @rotate, @scale )
       end
    end
 
@@ -98,13 +98,13 @@ module PhotoAlbum
       FILENAME_REGEXP  = /\d{8}t\d{6}#{EXT}/
       FILENAME_PATTERN = "%Y%m%dt%H%M%S#{EXT}"
 
-      def initialize( name, conf, datetime = nil, title = nil, description = nil, convert = nil, rotate = nil, scale = nil )
-	 super( name, datetime, title, description, convert, rotate, scale )
+      def initialize( name, conf, datetime = nil, title = nil, description = nil, rotate = nil, scale = nil )
+	 super( name, datetime, title, description, rotate, scale )
 	 @conf = conf
       end
 
       def to_photo
-	 Photo::new( @name, @datetime, @title, @description, @convert, @rotate, @scale)
+	 Photo::new( @name, @datetime, @title, @description, @rotate, @scale)
       end
 
       def path
@@ -131,9 +131,6 @@ module PhotoAlbum
 	 # STDERR.puts "do_convert"
 	 convert = Convert.new( @conf.convert )
 	 File::copy( path, orig_path( true ) ) unless FileTest::exist? orig_path
-	 if @convert then
-	    convert.convert( @convert, orig_path, path )
-	 end
 	 if @rotate then
 	    convert.convert( "-rotate", @rotate.to_s, path, tempname )
 	    File::cp( tempname, path )
@@ -861,9 +858,9 @@ module PhotoAlbum
       end
    end
 
-   class AlbumEdit < AlbumPhoto; end
+   class AlbumPhotoEdit < AlbumPhoto; end
 
-   class AlbumSavePhoto < AlbumEdit
+   class AlbumPhotoSave < AlbumPhotoEdit
       def initialize ( cgi, rhtml, conf )
 	 super
 
@@ -885,7 +882,7 @@ module PhotoAlbum
       end
    end
 
-   class AlbumOriginalPhoto < AlbumEdit
+   class AlbumPhotoOriginal < AlbumPhotoEdit
       def initialize ( cgi, rhtml, conf )
 	 super
 	 File::move( @photo.orig_path, @photo.path )
@@ -896,7 +893,7 @@ module PhotoAlbum
       end
    end
 
-   class AlbumRemovePhoto < AlbumEdit
+   class AlbumPhotoRemove < AlbumPhotoEdit
       def initialize ( cgi, rhtml, conf )
 	 super
 	 if @cgi.valid?( 'confirm' ) then
@@ -926,7 +923,7 @@ module PhotoAlbum
       end
    end
 
-   class AlbumConvertPhoto < AlbumEdit
+   class AlbumPhotoConvert < AlbumPhotoEdit
       def initialize ( cgi, rhtml, conf )
 	 super
 
@@ -941,7 +938,6 @@ module PhotoAlbum
 	    end
 	 end
 
-	 @photo.convert = @cgi['convert'][0] if @cgi.valid?( 'convert' )
 	 @photo.scale = @cgi['scale'][0].to_i if @cgi.valid?( 'scale' )
 
 	 @photo = @photo.to_photofile( @conf )

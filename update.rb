@@ -13,15 +13,15 @@ begin
    conf = PhotoAlbum::Config::new
    cgi = CGI::new
    if cgi.valid?( 'remove' )
-      album = PhotoAlbum::AlbumRemovePhoto::new( cgi, "remove.rhtml", conf )
+      album = PhotoAlbum::AlbumPhotoRemove::new( cgi, "remove.rhtml", conf )
    elsif cgi.valid?( 'savephoto' )
-      album = PhotoAlbum::AlbumSavePhoto::new( cgi, "edit.rhtml", conf )
+      album = PhotoAlbum::AlbumPhotoSave::new( cgi, "edit.rhtml", conf )
    elsif cgi.valid?( 'convertphoto' )
-      album = PhotoAlbum::AlbumConvertPhoto::new( cgi, "edit.rhtml", conf )
+      album = PhotoAlbum::AlbumPhotoConvert::new( cgi, "edit.rhtml", conf )
    elsif cgi.valid?( 'original' )
-      album = PhotoAlbum::AlbumOriginalPhoto::new( cgi, "edit.rhtml", conf )
+      album = PhotoAlbum::AlbumPhotoOriginal::new( cgi, "edit.rhtml", conf )
    elsif cgi.valid?( 'photo' )
-      album = PhotoAlbum::AlbumEdit::new( cgi, "edit.rhtml", conf )
+      album = PhotoAlbum::AlbumPhotoEdit::new( cgi, "edit.rhtml", conf )
    elsif cgi.valid?( 'saveconf' ) then
       album = PhotoAlbum::AlbumSaveConf::new( cgi, "conf.rhtml", conf )
    elsif cgi.valid?( 'conf' ) then
