@@ -944,7 +944,6 @@ module PhotoAlbum
 
 	 @photo = @photo.to_photofile( @conf )
 	 @photo.do_convert( rotate, scale )
-	 @photo.make_thumbnail
       end
    end
 
