@@ -46,6 +46,18 @@ def calendar
    result << "</div>"
 end
 
+def total_photo
+   @all_photos.size
+end
+
+def total_photo_size
+   total = 0
+   @all_photos.collect{|p| "#{@conf.images_dir}#{p}#{PhotoAlbum::PhotoFile::EXT}".untaint }.each do |f|
+      total += FileTest::size( f )
+   end
+   total
+end
+
 #
 # define DOCTYPE
 #
