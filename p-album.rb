@@ -762,7 +762,7 @@ module PhotoAlbum
       def initialize( cgi, rhtml, conf )
 	 super
 
-	 m = @cgi['month'][0]
+	 m = @cgi['date'][0]
 	 if Date::exist?( m[0,4].to_i, m[4,2].to_i, 1) and FileTest::exist?( "#{@conf.data_path}#{m}.db" )then
 	    db = PStore::new( "#{@conf.data_path}#{m}.db" )
 	    db.transaction do
