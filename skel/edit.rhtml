@@ -1,0 +1,17 @@
+  <%= @conf.header %>
+  <hr class="sep">
+
+  <div class="form">
+  <form action="<%= @conf.update %>" method="POST">
+  <input type="hidden" name="photo" value="<%= @photo.basename %>">
+  <p>タイトル: <input class="field" type="text" name="title" size="40" value="<%= @photo.title %>"></p>
+  <p>説明:<br><textarea rows="15" cols="70" name="description"><%= @photo.description %></textarea></p>
+  <input type="hidden" name="photo" value="<%= @photo.basename %>">
+  <input type="submit" name="savephoto" value=" 登録 ">
+  <div class="photo"><img src="<%= @photo.path %>" alt="<%= @photo.title %>" title="<%= @photo.title %>" <%= ImageSize::new( open(@photo.path) ).html_imgsize %></div>
+  <p class="datetime">撮影日時: <%= @photo.datetime.strftime( '%Y-%m-%d %H:%M:%S' ) %></p>
+  </div>
+  </form>
+
+  <hr class="sep">
+  <%= @conf.footer %>

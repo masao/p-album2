@@ -1,0 +1,16 @@
+  <%= @conf.header %>
+  <hr class="sep">
+
+  <form action="<%= @conf.index %>">
+  <div class="day">
+  <div class="body">
+   <% 1.upto 10 do |i| %>
+   <input type="file" name="file#{i}">
+   <% end %>
+  </div>
+  </div>
+  <input type="submit" name="import" value="епо©">
+  </form>
+
+  <hr class="sep">
+  <%= @conf.footer %>

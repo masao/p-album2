@@ -1,0 +1,16 @@
+  <%= @conf.header %>
+  <hr class="sep">
+
+  <% latest( @conf.recent ) do |day| %>
+  <div class="day">
+  <h2><span class="date"><a href="<%= @conf.index %>?month=<%= day.day[0,6] %>#<%= day.day %>"><%= day %></a></span></h2>
+  <div class="body">
+  <% day.each_photo do |photo| %>
+  <a href="<%= @conf.index %>?photo=<%= photo.basename %>"><img src="<%= photo.thumbnail %>" alt="<%= photo.title %>" title="<%= photo.title%>" <%= ImageSize::new(open(photo.thumbnail)).html_imgsize %>></a>
+  <% end %>
+  </div>
+  </div>
+  <% end %>
+
+  <hr class="sep">
+  <%= @conf.footer %>

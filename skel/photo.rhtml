@@ -1,0 +1,12 @@
+  <%= @conf.header %>
+  <hr class="sep">
+
+  <h2 class="photo-title"><%= @photo.title %></h2>
+  <div class="photo"><img src="<%= @photo.path %>" alt="<%= @photo.title %>" title="<%= @photo.title %>" <%= ImageSize::new( open(@photo.path) ).html_imgsize %></div>
+  <p class="datetime">»£±ÆÆü»þ: <%= @photo.datetime.strftime( '%Y-%m-%d %H:%M:%S' ) %></p>
+  <% if @photo.description && @photo.description.length > 0 then %>
+  <p class="description"><%= @photo.description %></p>
+  <% end %>
+
+  <hr class="sep">
+  <%= @conf.footer %>
