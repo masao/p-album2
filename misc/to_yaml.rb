@@ -5,6 +5,9 @@
 
 require "yaml"
 require "p-album"
+require 'getopts'
+
+getopts('q')
 
 Dir::glob("*.db") do |f|
    result = {}
@@ -27,5 +30,5 @@ Dir::glob("*.db") do |f|
    open(newfname, "w") do |f|
       f.print result.to_yaml( :SortKeys => true )
    end
-   puts "#{newfname} done."
+   puts "#{newfname} done." unless $OPTS_q
 end
