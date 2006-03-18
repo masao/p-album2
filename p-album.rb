@@ -118,9 +118,13 @@ module PhotoAlbum
       end
 
       def orig_path ( force = false )
-	 r = path
-	 r += ".orig" if force or FileTest::exist?( path + ".orig" )
-	 r
+         orig_filename = File.join(File.dirname(path),
+                                   File.basename(path, ".*") + ".orig" + File.extname(path))
+	 if force or FileTest::exist?( orig_filename )
+            orig_filename
+         else
+            path
+         end
       end
 
       def make_thumbnail
