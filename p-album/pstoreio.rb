@@ -15,7 +15,7 @@ module PhotoAlbum
          filename = "#{@data_path}#{month}.db".untaint
          result = nil
          begin
-            PStore::new( filename ).transaction do |db|
+            PStore::new( filename ).transaction( true ) do |db|
                if db.root?( 'p-album' ) then
                   result = db['p-album']
                end
