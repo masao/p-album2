@@ -163,25 +163,16 @@ module PhotoAlbum
             datetime = File::mtime( file )
 	 end
 
-	 filename = conf.images_dir + datetime.strftime( self::FILENAME_PATTERN )
-
 	 # 既存の写真ファイルと同じものなら追加しない
-	 if FileTest::exist?( filename ) then
-	    target = filename
-	    target = filename + ".orig" if FileTest::exist?( filename + ".orig" )
-	    if File::cmp( file, target ) then
+         0.upto 999 do |i|
+            filename = conf.images_dir + datetime.strftime( self::FILENAME_PATTERN ) 
+            filename = filename.sub( /(_\d+)?.jpg$/, "_#{i}.jpg" ) if i > 0
+            target = Photo::new( File::basename(filename) )
+            break if not FileTest::exist?( target.orig_path )
+	    if File::cmp( file, target.orig_path ) then
 	       return nil
-	    else
-	       1.upto 999 do |i|
-		  filename = filename.sub( /(_\d+)?.jpg$/, "_#{i}.jpg" )
-		  target = filename + ".orig" if FileTest::exist?( filename + ".orig" )
-		  break if not FileTest::exist?( filename )
-		  if File::cmp( file, target ) then
-		     return nil
-		  end
-	       end
-	    end
-	 end
+            end
+         end
 
 	 File::cp( file, filename )
 	 stat = File::stat( file )
