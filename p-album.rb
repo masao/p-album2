@@ -164,16 +164,18 @@ module PhotoAlbum
 	 end
 
 	 # 既存の写真ファイルと同じものなら追加しない
+         filename = conf.images_dir + datetime.strftime( self::FILENAME_PATTERN ) 
          0.upto 999 do |i|
-            filename = conf.images_dir + datetime.strftime( self::FILENAME_PATTERN ) 
             filename = filename.sub( /(_\d+)?.jpg$/, "_#{i}.jpg" ) if i > 0
-            target = Photo::new( File::basename(filename) )
+            target = PhotoFile::new( File::basename(filename, EXT), conf )
             break if not FileTest::exist?( target.orig_path )
 	    if File::cmp( file, target.orig_path ) then
 	       return nil
             end
          end
 
+         is = ImageSize::new( open(filename) )
+         return nil if is.get_type == ImageSize::Type::OTHER
 	 File::cp( file, filename )
 	 stat = File::stat( file )
 	 File::utime( stat.atime, stat.mtime, filename ) 
