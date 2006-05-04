@@ -174,7 +174,7 @@ module PhotoAlbum
             end
          end
 
-         is = ImageSize::new( open(filename) )
+         is = ImageSize::new( open(file) )
          return nil if is.get_type == ImageSize::Type::OTHER
 	 File::cp( file, filename )
 	 stat = File::stat( file )
@@ -182,7 +182,6 @@ module PhotoAlbum
 	 photo = self::new( File::basename(filename, EXT), conf )
          if conf.load_image_size and conf.load_image_size.to_i > 0
             size = conf.load_image_size.to_i
-            is = ImageSize::new( open(filename) )
             cur_size = [ is.get_height, is.get_width ].max
             if cur_size > size
                scale = 100 * size / cur_size.to_f
