@@ -160,7 +160,7 @@ module PhotoAlbum
 	 rescue Exif::Error
 	    datetime = File::mtime( file )
 	 rescue RuntimeError
-	    datetime = File::mtime( file )
+            datetime = File::mtime( file )
 	 end
 
 	 filename = conf.images_dir + datetime.strftime( self::FILENAME_PATTERN )
@@ -185,8 +185,17 @@ module PhotoAlbum
 
 	 File::cp( file, filename )
 	 stat = File::stat( file )
-	 File::utime( stat.atime, stat.mtime, filename )
+	 File::utime( stat.atime, stat.mtime, filename ) 
 	 photo = self::new( File::basename(filename, EXT), conf )
+         if conf.load_image_size and conf.load_image_size.to_i > 0
+            size = conf.load_image_size.to_i
+            is = ImageSize::new( open(filename) )
+            cur_size = [ is.get_height, is.get_width ].max
+            if cur_size > size
+               scale = 100 * size / cur_size.to_f
+               photo.do_convert( nil, scale )
+            end
+         end
 	 photo.make_thumbnail
 	 photo
       end
@@ -319,6 +328,7 @@ module PhotoAlbum
 	 @images_dir = './images/' unless @images_dir
 	 @thumbs_dir = './thumbs/' unless @thumbs_dir
 	 @perm = nil unless @perm
+	 @load_image_size = nil unless @load_image_size
 
 	 @index = './' unless @index
 	 @update = './update.rb' unless @update
