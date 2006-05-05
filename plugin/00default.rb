@@ -167,11 +167,11 @@ def index_page_tag
 
    if @photo then
       t = @photo.datetime
-      result << %Q[<link rel="up" title="#{t.strftime '%Y-%m-%d'}" href="#{anchor t.strftime('%Y%m')}##{t.strftime '%Y%m%d'}">\n\t]
+      result << %Q[<link rel="up" title="#{t.strftime '%Y-%m-%d'}" href="#{@conf.index}#{anchor t.strftime('%Y%m')}##{t.strftime '%Y%m%d'}">\n\t]
       if @mode == "photo"
          result << %Q[<link rel="alternate" title="#{navi_edit}" href="#{@conf.update}?photo=#{@photo.name}">\n\t]
       else
-         result << %Q[<link rel="alternate" title="#{navi_back}" href="#{anchor @photo.name}">\n\t]
+         result << %Q[<link rel="alternate" title="#{navi_back}" href="#{@conf.index}#{anchor @photo.name}">\n\t]
       end
    end
 
