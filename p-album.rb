@@ -783,12 +783,12 @@ module PhotoAlbum
       def initialize( cgi, rhtml, conf )
 	 super
 
-	 m = @cgi['photo'][0][0, 6]
-	 d = @cgi['photo'][0][0, 8]
+	 m = @cgi.params['photo'][0][0, 6]
+	 d = @cgi.params['photo'][0][0, 8]
 	 month = @io.load( m )
          if month.include?( d ) then
             month[d].each_photo do |photo|
-               if photo.name == @cgi['photo'][0] then
+               if photo.name == @cgi.params['photo'][0] then
                   @photo = photo.to_photofile( @conf )
                   break
                end
@@ -885,8 +885,8 @@ module PhotoAlbum
       def initialize ( cgi, rhtml, conf )
 	 super
 
-	 @photo.title = @cgi['title'][0].to_euc
-	 @photo.description = @cgi['description'][0].to_euc
+	 @photo.title = @cgi.params['title'][0].to_euc
+	 @photo.description = @cgi.params['description'][0].to_euc
 	 save_photo_db
       end
    end
