@@ -5,10 +5,10 @@ def navi
    result = %Q[<div class="adminmenu">\n]
    result << %Q[<span class="adminmenu"><a href="#{@conf.index_page}">¥È¥Ã¥×</a></span>\n] unless @conf.index_page.empty?
    result << %Q[<span class="adminmenu"><a href="#{@conf.index}#{anchor @prev_month}">&laquo;#{navi_prev_month}</a></span>\n] if @prev_month
-   result << %Q[<span class="adminmenu"><a href="#{@conf.index}#{anchor @prev_photo}">&laquo;#{navi_prev_photo}</a></span>\n] if @prev_photo
+   result << %Q[<span class="adminmenu"><a href="#{@conf.index}#{anchor @prev_photo.name}"><img src="#{@prev_photo.thumbnail}" alt="#{@prev_photo.title}" title="#{@prev_photo.title}" #{html_imgsize(@prev_photo.thumbnail)}>&laquo;#{navi_prev_photo}</a></span>\n] if @prev_photo
    result << %Q[<span class="adminmenu"><a href="#{@conf.index}">#{navi_latest}</a></span>\n] unless @mode == 'latest'
    result << %Q[<span class="adminmenu"><a href="#{@conf.index}#{anchor @next_month}">#{navi_next_month}&raquo;</a></span>\n] if @next_month
-   result << %Q[<span class="adminmenu"><a href="#{@conf.index}#{anchor @next_photo}">#{navi_next_photo}&raquo;</a></span>\n] if @next_photo
+   result << %Q[<span class="adminmenu"><a href="#{@conf.index}#{anchor @next_photo.name}">#{navi_next_photo}&raquo;<img src="#{@next_photo.thumbnail}" alt="#{@next_photo.title}" title="#{@next_photo.title}" #{html_imgsize(@next_photo.thumbnail)}></a></span>\n] if @next_photo
    result << %Q[<span class="adminmenu"><a href="#{@conf.index}#{anchor @photo.name}">#{navi_back}</a></span>\n] if @mode =~ /^photo(edit|convert|original|save)$/
    result << %Q[<span class="adminmenu"><a href="#{@conf.update}?photo=#{@photo.name}">#{navi_edit}</a></span>\n] if @mode == 'photo'
    menu_proc.each {|i| result << %Q[<span class="adminmenu">#{i}</span>\n]}
@@ -116,10 +116,10 @@ def calc_links
       m = @photo.name[0, 6]
       idx = @all_photos.index( @photo.name )
       unless idx == 0 then
-	 @prev_photo = @all_photos[ idx - 1 ]
+	 @prev_photo = PhotoFile::new( @all_photos[ idx - 1 ].untaint, @conf )
       end
       unless idx == @all_photos.size - 1 then
-	 @next_photo = @all_photos[ idx + 1 ]
+	 @next_photo = PhotoFile::new( @all_photos[ idx + 1 ].untaint, @conf )
       end
    end
 end
@@ -150,10 +150,10 @@ def index_page_tag
    end
 
    if @prev_photo then
-      result << %Q[<link rel="prev" title="#{navi_prev_photo}" href="#{@conf.index}#{anchor @prev_photo}">\n\t]
+      result << %Q[<link rel="prev" title="#{navi_prev_photo}" href="#{@conf.index}#{anchor @prev_photo.name}">\n\t]
    end
    if @next_photo then
-      result << %Q[<link rel="next" title="#{navi_next_photo}" href="#{@conf.index}#{anchor @next_photo}">\n\t]
+      result << %Q[<link rel="next" title="#{navi_next_photo}" href="#{@conf.index}#{anchor @next_photo.name}">\n\t]
    end
 
    if @mode == "latest" then

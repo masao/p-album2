@@ -49,3 +49,7 @@ div.search {
 div.search div.datetime {
   text-align: left;
 }
+
+div.adminmenu img {
+  border: none;
+}
