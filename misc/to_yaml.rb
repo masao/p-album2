@@ -9,7 +9,7 @@ require 'getopts'
 
 getopts('q')
 
-Dir::glob("*.db").sort.each do |f|
+Dir::glob("[0-9]*.db").sort.each do |f|
    result = {}
 
    month = Marshal::load(open(f))['p-album']
