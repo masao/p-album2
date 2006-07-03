@@ -157,7 +157,7 @@ module PhotoAlbum
 	    require 'exifparser'
 	    exif = Exif::Parser::new( file )
 	    datetime = Time::local( *(exif['DateTime'].value.split(/\D+/)) )
-	 rescue Exif::Error
+         rescue Exif::Error
 	    datetime = File::mtime( file )
 	 rescue RuntimeError
             datetime = File::mtime( file )
@@ -789,7 +789,7 @@ module PhotoAlbum
          if month.include?( d ) then
             month[d].each_photo do |photo|
                if photo.name == @cgi.params['photo'][0] then
-                  @photo = photo.to_photofile( @conf )
+                  @photo = photo.untaint.to_photofile( @conf )
                   break
                end
             end
