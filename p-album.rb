@@ -556,10 +556,14 @@ module PhotoAlbum
 	 r.join
       end
 
-      def add_conf_proc( key, label, block = Proc::new )
+      def add_conf_proc( key, label, block = Proc::new, newstyle_block = Proc::new )
 	 return unless @mode =~ /^(conf|saveconf)$/
 	 @conf_keys << key unless @conf_keys.index( key )
-	 @conf_procs[key] = [label, block]
+         if block.respond_to?( :call )
+            @conf_procs[key] = [label, block]
+         else
+            @conf_procs[key] = [label, newstyle_block]
+         end
       end
 
       def each_conf_key
