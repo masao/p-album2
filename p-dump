@@ -1,0 +1,50 @@
+#!/usr/bin/env ruby
+# $Id$
+
+# 画像DBからの静的HTMLの書き出し
+
+# 使い方:
+#   p-dump
+
+if FileTest::symlink?( __FILE__ ) then
+   org_path = File::dirname( File::readlink( __FILE__ ) )
+else
+   org_path = File::dirname( __FILE__ )
+end
+$:.unshift( org_path.untaint )
+require 'p-album'
+
+module PhotoAlbum
+   class AlbumDump < AlbumBase
+      def dump
+         album = PhotoAlbum::AlbumLatest::new( @cgi, "latest.rhtml", @conf )
+         open( "index.html", "w" ){|f|
+            f.print album.eval_rhtml
+         }
+         self.each_month do |m|
+            puts m
+            @cgi.params["date"] = [ m ]
+            album = PhotoAlbum::AlbumMonth::new( @cgi, "month.rhtml", @conf )
+            open( "#{m}.html", "w" ){|f|
+               f.print album.eval_rhtml
+            }
+            self.photo_list( m ).each do |p|
+               puts p
+               @cgi.params["photo"] = [ p ]
+               album = PhotoAlbum::AlbumPhoto::new( @cgi, "photo.rhtml", @conf )
+               open( "#{p}.html", "w" ){|f|
+                  f.print album.eval_rhtml
+               }
+            end
+         end
+      end
+   end
+end
+
+if $0 == __FILE__
+   conf = PhotoAlbum::Config::new
+   cgi = CGI::new()
+   album = PhotoAlbum::AlbumDump::new( cgi, "", conf )
+   album.dump
+   #album = PhotoAlbum::AlbumLatest::new( cgi, "latest.rhtml", conf )
+end
