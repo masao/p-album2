@@ -5,6 +5,7 @@ require 'ftools'
 require 'date'
 require 'pstore'
 require 'nkf'
+require 'rubygems'
 require 'image_size'
 begin
    require 'erb_fast'
